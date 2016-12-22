@@ -31,7 +31,9 @@ The main-PCB contains the microcontroller and the sensor interface electronics. 
 - All the functionality as found in the [STC1000p firmware](https://github.com/Emile666/stc1000_stm8/).
 - Alarm relay output added
 - Reliable and accurate temperature interface, both for a K-type thermocouple as well as for a PT100 element
-- Both a K-type thermocouple and a PT100 are supported. Not at the same type, but if you replace a thermocouple for a PT100 sensor, this will work without further hardware modifications. it is detected automatically by the firmware.
+- Wireless communication via a **nRF24L01+** device
+- **I<sup>2</sup>C**-interface available for a DS3231 Real-Time Clock (RTC) interface
+- Both a K-type thermocouple and a PT100 are supported. Not at the same time, but if you replace a thermocouple for a PT100 sensor, this will work without further hardware modifications. it is detected automatically by the firmware.
 
 
 Hardware Upgrade
@@ -54,28 +56,28 @@ The frontpanel PCB is reverse-engineered and schematics are made. This is needed
 
 Some interesting things can be seen from this:
 - The Common-Anode lines (8 in total, one for every 7-segment display) are the outputs of a 74HC164 shift-register. The microcontroller controls this with the clock and serial_in lines.
-- The keys are multiplexed with the Common-Anode lines from the 7-segment displays. When the displays are addressed, this line needs to be high. Reading the keys is done by enabling the CA lines one by one while checking if keys_common line is high (key pressed) or low (not pressed). Furthermore, there's a pull-down resistor on these lines on the main-PCB.
-- There's a separate LEDS_ANODE line for the four LEDs (of which only the OUT LED is populated). Set this low to disable the LEDs, high with the proper (B, F, A or D) line low enables the LED. A separate PNP transistor to drive this line is populated at the main-PCB.
+- The keys are multiplexed with the Common-Anode lines from the 7-segment displays. When the displays are addressed, this line needs to be high. Reading the keys is done by enabling the CA lines one by one while checking if KEYS_COMMON line is high (key pressed) or low (not pressed). Furthermore, there's a pull-down resistor on these lines on the main-PCB.
+- There's a separate LEDS_ANODE line for the four LEDs (of which only the OUT1 LED is populated). Set this low to disable the LEDs, high with the proper (B, F, A or D) line low enables the LED. A separate PNP transistor to drive this line is populated at the main-PCB.
 - The 14 pin connector to the main-PCB is a soldered connection. Place the two PCBs against each other and solder every individual pin.
-- The individual segments (a until g and dp) are connected via a 47R resistor directly to the main-PCB.
+- The individual segments (a, b, c, d, e, f, g and dp) are connected via a 47R resistor directly to the main-PCB.
 
 The main-PCB is created completely new:
 
 ![C100 frontpanel](img/main_pcb_schematics.png)
 *Schematics (new) of the main-PCB of the C100 PID controller*
 
-- The new microcontroller is an **STM8S105C6T6** 48-pin LQFP device. More than capable of running everything. To program this device, the STVD (ST Visual Development) tool is used in combination with the Cosmic C compiler. This will give you 32 Kbyte code-size (and it is free of charge).
+- The new microcontroller is an **STM8S105C6T6** 48-pin LQFP device. More than capable of running everything. To program this device, the STVD (ST Visual Development) tool is used in combination with the Cosmic C compiler. This will give you 32 Kbyte code-size (and it is free of charge). See the [STC1000p_steroids](https://github.com/Emile666/stc1000p_steroids/) project for details.
 - The new PCB has the exact same form-factor as the current PCB. It should therefore be easy to replace it and fit in the current housing
 - CON1: the 14 pin soldered connection to the frontpanel
 - CON2: this forms the connection with the outside world. The pads are the exact same size as in the original.
 - CON3: there's a 6 wire flat-cable coming from the power-supply PCB. Resolder it in the same way as in the original. Besides the voltages, there's also an SSR-out connection.
 - CON4: this connector is new and connects to a **nRF24L01+** device for wireless connection to a PC
 - CON5: this one is also new. It is a dedicated connector for programming and debugging. Connect it to the ST-Link V2 USB device (see also the [STC1000p project](https://github.com/Emile666/stc1000_stm8/)).
-- CON6: this one is also new and forms an I2C interface. Although optional, you could connect a DS3231 Real-Time Clock (RTC) to this.
+- CON6: this one is also new and forms an **I<sup>2</sup>C**-interface. Although optional, you could connect a DS3231 Real-Time Clock (RTC) to this.
 - The entire PCB runs at 3.3 V and has a dedicated voltage regulator (IC4) for it.
 - The thermocouple interface is controlled by IC2 and will give you much more reliable readings than with the stock opamp amplifier. It uses the SPI bus to connect to the µC.
 - There's now also a PT100 interface, controlled by IC3. You can connect either a PT100 sensor or a thermocouple sensor to the device (bot not both at the same time). The PT100 sensor is read first by the firmware. If it detects that it is NOT present, the thermocouple sensor is tried.
-- An alarm relay is added. It is able to switch 16 A at 230V! During normal operation, it is open and closed when an alarm is present.
+- An alarm relay is added. It is able to switch 16 A at 230V. During normal operation, it is open and closed when an alarm is present.
 
 ![C100 main PCB](img/main_pcb_new.png)
 *PCB design (new) of the main-PCB*
