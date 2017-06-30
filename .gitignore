@@ -8,6 +8,11 @@
 *.gch
 *.pch
 
+# Compiler Outputs
+*.map
+*.s19
+*.sm8
+
 # Libraries
 *.lib
 *.a

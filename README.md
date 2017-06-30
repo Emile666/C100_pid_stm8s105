@@ -82,12 +82,12 @@ The main-PCB is created completely new:
 - An alarm relay is added. It is able to switch 16 A at 230V. During normal operation, it is open and closed when an alarm is present.
 
 ![C100 main PCB built 1](img/pcb_uc_mounted_front.jpg)  
-*PCB frontpanel and soldered to existing frontpanel*
+*Picture of the new Main-PCB soldered to the existing frontpanel*
 
 This picture shows how the components were soldered and how the connection to the existing frontpanel is made. The entire PCB fits nicely in the existing housing.
 
 ![C100 main PCB built 2](img/pcb_uc_mounted_back.jpg)  
-*Solder-side of new PCB board*
+*Solder-side of the new Main-PCB board*
 
 The solder-side contains the alarm relay and also the interfaces for the wireless interface and the Real-Time-Clock (RTC).
 
