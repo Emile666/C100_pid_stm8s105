@@ -81,8 +81,15 @@ The main-PCB is created completely new:
 - There's now also a PT100 interface, controlled by IC3, a **MAX31865**. You can connect either a PT100 sensor or a thermocouple sensor to the device (bot not both at the same time). The PT100 sensor is read first by the firmware. If it detects that it is NOT present, the thermocouple sensor is read.
 - An alarm relay is added. It is able to switch 16 A at 230V. During normal operation, it is open and closed when an alarm is present.
 
-![C100 main PCB](img/main_pcb_new.png)  
-*PCB design (new) of the main-PCB*
+![C100 main PCB built 1](img/pcb_uc_mounted_front.jpg)  
+*PCB frontpanel and soldered to existing frontpanel*
+
+This picture shows how the components were soldered and how the connection to the existing frontpanel is made. The entire PCB fits nicely in the existing housing.
+
+![C100 main PCB built 2](img/pcb_uc_mounted_back.jpg)  
+*Solder-side of new PCB board*
+
+The solder-side contains the alarm relay and also the interfaces for the wireless interface and the Real-Time-Clock (RTC).
 
 I have a limited number of PCBs available. Send me a PM if you would like to have one. But you can also create one yourself with the Eagle .sch and .brd files given here.
 
