@@ -1,7 +1,26 @@
-/* MAIN.C file
- * 
- * Copyright (c) 2002-2005 STMicroelectronics
- */
+/*==================================================================
+  File Name    : c100_pid_main.c
+  Author       : Emile
+  ------------------------------------------------------------------
+  Purpose : This is the main-file for the c100_pid project.
+
+  ------------------------------------------------------------------
+  C100_PID is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+ 
+  C100_PID is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with C100_PID.  If not, see <http://www.gnu.org/licenses/>.
+  ------------------------------------------------------------------
+  $Log: $
+  ==================================================================
+*/ 
 #include "c100_pid_main.h"
 #include "stdint.h"
 #include "delay.h"
@@ -12,20 +31,23 @@ long delay_val = 100000;
 int  irq_cnt   = 0;
 
 // Global variables
-bool      probe2 = false;    // cached flag indicating whether 2nd probe is active
-uint8_t   leds_out;          // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
-int16_t   temp_ntc1;         // The temperature in E-1 °C from NTC probe 1
-int16_t   temp_ntc2;         // The temperature in E-1 °C from NTC probe 2
-uint8_t   mpx_nr = 0;        // Used in multiplexer() function
+bool      probe2 = false;        // cached flag indicating whether 2nd probe is active
+uint16_t  leds_out;              // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
+int16_t   temp_ntc1;             // The temperature in E-1 °C from NTC probe 1
+int16_t   temp_ntc2;             // The temperature in E-1 °C from NTC probe 2
+uint8_t   mpx_nr = 0;            // Used in multiplexer() function
 int16_t   pwr_on_tmr = 1000;     // Needed for 7-segment display test
 uint8_t   top_100,top_10,top_1, top_01;
 uint8_t   hc164_val;
 
+uint8_t std[4] = {STD_LED_OFF, STD_LED_OFF, STD_LED_OFF, STD_LED_OFF};
+uint8_t blink_tmr[4];
+
 // External variables, defined in other files
-extern int16_t  @eeprom eedata[]; // Link to .eeprom section
+extern int16_t  @eeprom eedata[];     // Link to .eeprom section
 extern uint8_t led_e;                 // value of extra LEDs
 extern uint8_t led_10, led_1, led_01; // values of 10s, 1s and 0.1s
-extern bool    pwr_on;           // True = power ON, False = power OFF
+extern bool    pwr_on;                // True = power ON, False = power OFF
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine sets the HC164 shiftregister to a value x.
@@ -36,9 +58,9 @@ void set_hc164(uint8_t x)
 {
     uint8_t i, j, p = 0x80;
     
-    hc164_val = x; // save value
-    SET_CLK_0;
-    SET_SDIN_0;
+    hc164_val = x; // save value for read_buttons() function
+    SET_CLK_0;     // CLK  = 0
+    SET_SDIN_0;    // SDIN = 0
     for (i = 0; i < 8; i++)
     {
         if (x & p) SET_SDIN_1;
@@ -50,75 +72,145 @@ void set_hc164(uint8_t x)
     } // for i
 } // set_hc164()
 
-#define PD_LEDS(x) (((x << 1) & 0x0C) | ((x << 4) & 0x10))
+/*-----------------------------------------------------------------------------
+  Purpose  : This routine set one frontpanel LED ON, OFF or Blinking.
+             Blinking-rate can be set fast or slow
+  Variables: nr: unique number for LED [0..3]
+            led: bit-define in leds_out for one of 4 LEDs: 1 = ON, 0 = OFF
+      blink_msk: bit-define in leds_out for one of 4 LEDs: 1 = Blinking, 0 = not
+ blink_rate_msk: bit-define in leds_out for one of 4 LEDs: 1 = Blink fast, 0 = Blink slow
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void set_one_led(uint8_t nr, uint16_t led, uint16_t blink_msk, uint16_t blink_rate_msk)
+{   
+   uint8_t blink_rate;
+   
+   if (leds_out & blink_rate_msk)
+        blink_rate = LED_BLINK_FAST;
+   else blink_rate = LED_BLINK_SLOW;
+   
+   switch (std[nr])
+   {
+       case STD_LED_OFF:
+          PD_ODR |= led; // LED off
+          if (leds_out & led)
+          {
+             if (leds_out & blink_msk)
+             {
+                  std[nr]       = STD_LED_BLINK1;
+                  blink_tmr[nr] = 0;
+             }
+             else std[nr] = STD_LED_ON;
+          } // if
+          // else remain in this state
+          break;
+       case STD_LED_ON:
+          PD_ODR &= ~led; // LED on
+          if (!(leds_out & led))
+             std[nr] = STD_LED_OFF;
+          else if (leds_out & blink_msk)
+          {
+             std[nr]       = STD_LED_BLINK1;
+             blink_tmr[nr] = 0;
+          } // else if
+          break;
+       case STD_LED_BLINK1:
+          PD_ODR &= ~led; // LED on
+          if (!(leds_out & led))
+             std[nr] = STD_LED_OFF;
+          else if (!(leds_out & blink_msk))
+             std[nr] = STD_LED_ON;
+          else if (++blink_tmr[nr] > blink_rate)
+          {
+             std[nr]       = STD_LED_BLINK0;
+             blink_tmr[nr] = 0;
+          } // else if 
+          break;
+       case STD_LED_BLINK0:
+          PD_ODR |= led; // LED off
+          if (!(leds_out & blink_msk))
+             std[nr] = STD_LED_OFF;
+          else if (++blink_tmr[nr] > blink_rate)
+          {
+             std[nr]       = STD_LED_BLINK1;
+             blink_tmr[nr] = 0;
+          } // else if 
+          break;  
+   } // switch
+} // set_one_led()
+
 /*-----------------------------------------------------------------------------
   Purpose  : This routine multiplexes the 4 segments of the 7-segment displays.
              It runs at 1 kHz, so there's a full update after every 4 msec.
+             The HC164 outputs are connected to the Command-Anodes of the 
+             7-segment displays, so setting a 1 will enable that 7-segment.
   Variables: -
   Returns  : -
   ---------------------------------------------------------------------------*/
 void multiplexer(void)
 {
     LEDS_OFF;             // clear LEDs
-    PC_ODR |= PORTC_LEDS; // disable 7-segment displays
-    PD_ODR |= PORTD_LEDS; // disable 7-segment displays
-    set_hc164(0x00);      // clear 7-segment displays
+    PE_ODR |= SEG7_C;     // disable 7-segment display C
+    PD_ODR |= PORTD_OUT;  // disable all other 7-segment displays
+    set_hc164(0x00);      // disable CA-lines of 7-segment displays
     
     switch (mpx_nr)
     {
         case 0: // output CA1 BOTTOM display (LSB)
             set_hc164(0x01);
-            PC_ODR &= ~(led_e & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(led_e);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(led_e);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(led_e);   // Update all other segments
             mpx_nr = 1;
             break;
         case 1: // output CA2 BOTTOM display
             set_hc164(0x02);
-            PC_ODR &= ~(led_01 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(led_01);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(led_01);  // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(led_01);  // Update all other segments
             mpx_nr = 2;
             break;
         case 2: // output CA3 BOTTOM display
             set_hc164(0x04);
-            PC_ODR &= ~(led_1 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(led_1);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(led_1);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(led_1);   // Update all other segments
             mpx_nr = 3;
             break;
         case 3: // outputs CA4 BOTTOM display (MSB)
             set_hc164(0x08);
-            PC_ODR &= ~(led_10 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(led_10);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(led_10);  // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(led_10);  // Update all other segments
             mpx_nr = 4;
             break;
         case 4: // set Frontpanel LEDs
             set_hc164(0x00);
             LEDS_ENABLE;
-            PC_ODR &= ~(leds_out & (LED_OUT1 | LED_AT));
-            PD_ODR &= ~(leds_out & (LED_ALM1 | LED_ALM2));
+            set_one_led(0,LED_ALM1, LED_ALM1_BLINK, LED_ALM1_BLINK_FAST);
+            set_one_led(1,LED_ALM2, LED_ALM2_BLINK, LED_ALM2_BLINK_FAST);
+            set_one_led(2,LED_OUT1, LED_OUT1_BLINK, LED_OUT1_BLINK_FAST);
+            set_one_led(3,LED_AT  , LED_AT_BLINK  , LED_AT_BLINK_FAST);
             mpx_nr = 5;
             break;
         case 5: // output CA1 TOP display (LSB)
             set_hc164(0x10);
-            PC_ODR &= ~(top_01 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(top_01);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(top_01);  // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(top_01);  // Update all other segments
             mpx_nr = 6;
             break;
         case 6: // output CA2 TOP display
             set_hc164(0x20);
-            PC_ODR &= ~(top_1 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(top_1);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(top_1);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(top_1);   // Update all other segments
             mpx_nr = 7;
             break;
         case 7: // output CA3 TOP display
             set_hc164(0x40);
-            PC_ODR &= ~(top_10 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(top_10);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(top_10);  // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(top_10);  // Update all other segments
             mpx_nr = 8;
             break;
         case 8: // outputs CA4 TOP display (MSB)
             set_hc164(0x80);
-            PC_ODR &= ~(top_100 & PORTC_LEDS); // Update PC7..PC3
-            PD_ODR &= ~PD_LEDS(top_100);       // Update PD4..PD2
+            PE_ODR &= ~PE_LEDS(top_100); // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(top_100); // Update all other segments
         default: // FALL-THROUGH (less code-size)
             mpx_nr = 0;
             break;
@@ -137,8 +229,8 @@ void multiplexer(void)
     scheduler_isr();  // Run scheduler interrupt function
     if (!pwr_on)
     {   // Display OFF on dispay
-	led_10     = LED_O;
-	led_1      = led_01 = LED_F;
+        led_10     = LED_O;
+        led_1      = led_01 = LED_F;
         led_e      = LED_OFF;
         pwr_on_tmr = 2000; // 2 seconds
     } // if
@@ -147,7 +239,7 @@ void multiplexer(void)
         pwr_on_tmr--;
         led_10 = led_1 = led_01 = led_e = LED_ON;
     } // else if
-    multiplexer();    // Run multiplexer for Display and Keys
+    multiplexer();             // Run multiplexer for Display and Keys
     TIM2_SR1 &= ~TIM2_SR1_UIF; // Reset interrupt (UIF bit) so it will not fire again straight away.
 } // TIM2_UPD_OVF_IRQHandler()
 
@@ -159,36 +251,64 @@ void multiplexer(void)
   ---------------------------------------------------------------------------*/
 void setup_timer2(void)
 {
-    TIM2_PSCR = 0x04;  //  Prescaler = 16
-    TIM2_ARRH = 0x03;  //  High byte of 1000
-    TIM2_ARRL = 0xE8;  //  Low  byte of 1000
+    TIM2_PSCR = 0x04;         //  Prescaler = 16
+    TIM2_ARRH = 0x03;         //  High byte of 1000
+    TIM2_ARRL = 0xE8;         //  Low  byte of 1000
     TIM2_IER  = TIM2_IER_UIE; //  Enable the update interrupts, disable all others
     TIM2_CR1  = TIM2_CR1_CEN; //  Finally enable the timer
 } // setup_timer2()
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine initialises all the GPIO pins of the STM8 uC.
-             See c100_test.h for a detailed description of all pin-functions.
+             See c100_pid_main.h for a detailed description of all pin-functions.
   Variables: -
   Returns  : -
   ---------------------------------------------------------------------------*/
 void setup_gpio_ports(void)
 {
-    PA_ODR      = 0x00; // Turn off all pins from Port A
-    PA_DDR     |= (LEDS | CLOCK | SDIN); // Set as output
-    PA_CR1     |= (LEDS | CLOCK | SDIN); // Set to Push-Pull
+    //-------------------------------------------------------------------
+    // Initialise all PORTA IO: SSR and Alarm outputs
+    //-------------------------------------------------------------------
+    PA_DDR     |=   SSR | ALARM;         // Set PORTA pins as outputs
+    PA_CR1     |=   SSR | ALARM;         // Set output pins to Push-Pull
+    PA_ODR     &= ~(SSR | ALARM);        // Disable SSR and Alarm outputs
+    
+    //-------------------------------------------------------------------
+    // Initialise all PORTB IO: SPI Chip-selects and Enable
+    //-------------------------------------------------------------------
+    PB_DDR     |=  PORTB_OUT;            // Set PORTB pins as outputs
+    PB_CR1     |=  PORTB_OUT;            // Set output pins to Push-Pull
+    PB_ODR     |= (CS_TC | CS_PT100 | CS_NRF24L01); // Disable SPI Chip-Selects
+    PB_ODR     &= ~CE_NRF24L01;          // Set CE for NRF24L01 low
+    
+    //-------------------------------------------------------------------
+    // Initialise all PORTC IO: SPI IO, HC164 controls, LEDS, KEYS
+    //-------------------------------------------------------------------
+    PC_ODR     &= ~PORTC_OUT;            // Turn off all pins from Port C
+    PC_DDR     |= PORTC_OUT;             // Set PORTC pins as outputs
+    PC_CR1     |= PORTC_OUT;             // Set output pins to Push-Pull
+	PC_CR2     |=  (SPI_MOSI | SPI_SCK); // Set to 10 MHz
+    PC_ODR     &= ~(SPI_MOSI | SPI_SCK); // MOSI = 0, SPI_CLK = 0
+    PC_DDR     &= ~PORTC_IN;             // set PORTC pins as inputs
+	PC_CR1     &= ~PORTC_IN;             // set input pins to Floating
+    LEDS_OFF;                            // Disable frontpanel LEDs
+    SET_SDIN_0;                          // Disable SDIN for HC164
+    SET_CLK_0;                           // Disable CLK for HC164
 
-    PB_ODR     &= ~KEYS;  // Turn off all pins from Port B
-    PB_DDR     &= ~KEYS;  // Set PB5 as input
-    PB_CR1     &= ~KEYS;  // Set PB5 to Floating-Input
+    //-------------------------------------------------------------------
+    // Initialise all PORTD IO: 7-segment display (and SWIM debug)
+    //-------------------------------------------------------------------
+    PD_DDR     |=  PORTD_OUT;            // Set PORTD pins as outputs
+    PD_CR1     |=  PORTD_OUT;            // Set output pins to Push-Pull
+    PD_ODR     &= ~PORTD_OUT;            // Disable 7-segment displays
 
-    PC_ODR     &= ~PORTC_LEDS; // Turn off all pins from Port C
-    PC_DDR     |= PORTC_LEDS;  // Set PC7..PC3 as outputs
-    PC_CR1     |= PORTC_LEDS;  // Set PC7..PC3 to Push-Pull
-
-    PD_ODR     &= ~PORTD_LEDS; // Turn off all pins from Port D
-    PD_DDR     |= PORTD_LEDS;  // Set PD4..PD2 as outputs
-    PD_CR1     |= PORTD_LEDS;  // Set PD4..PD2 to Push-Pull
+    //-------------------------------------------------------------------
+    // Initialise all PORTD IO: 1 7-segment display and I2C bus
+    //-------------------------------------------------------------------
+    PE_ODR     |=  (I2C_SCL | I2C_SDA);           // Must be set here, or I2C will not work
+    PE_DDR     |=  (I2C_SCL | I2C_SDA | SEG7_C);  // Set as outputs
+    PE_CR1     |=  SEG7_C;                        // Set output pin to Push-Pull
+    PE_ODR     &= ~SEG7_C;                        // Disable 7-segment display
 } // setup_gpio_ports()
 
 /*-----------------------------------------------------------------------------
@@ -240,15 +360,21 @@ int main(void)
 	long i;
 	int ee = eedata[0]; // This is to prevent the linker from removing .eeprom section
 	
-	disable_interrupts();
-	initialise_system_clock();
-	setup_gpio_ports();
-	setup_timer2();
+	disable_interrupts();      // no interrupts yet
+	initialise_system_clock(); // set main-clock to 16 MHz
+	setup_gpio_ports();        // Initialise all GPIO ports
+	setup_timer2();            // set TMR2 clock to 1 kHz for interrupt
 
 	// Initialise all tasks for the scheduler
+    scheduler_init();                    // init. task scheduler
     add_task(std_task ,"STD", 50,  100); // every 100 msec.
-	enable_interrupts();
+	enable_interrupts();                 // enable interrupts
 
+    // Just for testing...
+    leds_out  = LED_ALM1 | LED_OUT1 | LED_AT;
+    leds_out |= LED_ALM1_BLINK | LED_AT_BLINK;
+    leds_out |= LED_ALM1_BLINK_FAST;
+    
 	while (1)
 	{ 	// background-processes
         dispatch_tasks();     // Run task-scheduler()

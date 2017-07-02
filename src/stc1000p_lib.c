@@ -71,7 +71,7 @@ uint16_t curr_dur = 0;          // local counter for temperature duration
 int16_t  pid_out  = 0;          // Output from PID controller in E-1 %
 int16_t  hysteresis;            // th-mode: hysteresis for temp probe ; pid-mode: lower hyst. limit in E-1 %
 int16_t  hysteresis2;           // th-mode: hysteresis for 2nd temp probe ; pid-mode: upper hyst. limit in E-1 %
-uint8_t  portc, portd;          // Needed for read_buttons()
+uint8_t  portd, porte;          // Needed for read_buttons()
 
 // External variables, defined in other files
 extern bool     probe2;    // cached flag indicating whether 2nd probe is active
@@ -386,11 +386,11 @@ void read_buttons(void)
     
     disable_interrupts();     // Disable interrups while reading buttons
     // Save registers that interferes with keys
-    portc   = PC_IDR & PORTC_LEDS;
-    portd   = PD_IDR & PORTD_LEDS; 
-    PC_ODR |= PORTC_LEDS;    // disable 7-segment displays
-    PD_ODR |= PORTD_LEDS;    // disable 7-segment displays
-    hc164_state = hc164_val; // save current hc164_val
+    porte   = PE_IDR & SEG7_C;    // Save 7-segment C status
+    portd   = PD_IDR & PORTD_OUT; // Save other 7-segments
+    PE_ODR |= SEG7_C;             // disable 7-segment display C
+    PD_ODR |= PORTD_OUT;          // disable all other 7-segment displays
+    hc164_state = hc164_val;      // save current hc164_val
     set_hc164(0x00);
     //i = (PB_IDR & KEYS); // dummy read, should read 0
     for (i = 0x88; i > 0x0F; i >>= 1)
@@ -398,21 +398,21 @@ void read_buttons(void)
        set_hc164(i);
        _buttons <<= 1;
        _buttons  &= 0xFE; // clear bit 0
-       if (PB_IDR & KEYS) _buttons |= 0x01;
+       if (PC_IDR & KEYS) _buttons |= 0x01;
        set_hc164(0x00);
     } // for i
     top_100 = top_10 = top_1 = top_01 = LED_0;
-    if (_buttons & 0x08) top_100 = LED_1;
-    if (_buttons & 0x04) top_10  = LED_1;
-    if (_buttons & 0x02) top_1   = LED_1;
-    if (_buttons & 0x01) top_01  = LED_1;
+    if (_buttons & 0x08) top_100 = LED_S;
+    if (_buttons & 0x04) top_10  = LED_L;
+    if (_buttons & 0x02) top_1   = LED_d;
+    if (_buttons & 0x01) top_01  = LED_u;
     
     // Restore registers that interferes with keys
     set_hc164(hc164_state); // restore HC164 state
-    PD_ODR &= ~PORTD_LEDS;
+    PD_ODR &= ~PORTD_OUT;
     PD_ODR |= portd;        // restore PORTD
-    PC_ODR &= ~PORTC_LEDS;
-    PC_ODR |= portc;        // restore PORTC
+    PE_ODR &= ~SEG7_C;
+    PE_ODR |= porte;        // restore PORTE
     enable_interrupts();    // Re-enable Interrupts
 } // read_buttons()
 
@@ -760,70 +760,6 @@ void init_temp_delays(void)
 } // init_temp_delays()
 
 /*-----------------------------------------------------------------------------
-  Purpose  : This routine switches the cooling relay and the LED indicator.
-  Variables: -
-  Returns  : -
-  ---------------------------------------------------------------------------*/
-void enable_cooling(void)
-{
-     if (cooling_delay) 
-         led_e ^= LED_COOL; // Flash to indicate cooling delay
-     else
-     {   // time-out
-         COOL_ON; // Enable Cooling
-         led_e |= LED_COOL;
-     } // else
-} // enable_cooling()
-
-/*-----------------------------------------------------------------------------
-  Purpose  : This routine switches the heating relay and the LED indicator.
-  Variables: -
-  Returns  : -
-  ---------------------------------------------------------------------------*/
-void enable_heating(void)
-{
-     if (heating_delay) 
-         led_e ^= LED_HEAT; // Flash to indicate heating delay
-     else
-     {   // time-out
-         HEAT_ON; // Enable Cooling
-         led_e |= LED_HEAT;
-     } // else
-} // enable_heating()
-
-/*-----------------------------------------------------------------------------
-  Purpose  : This routine controls the temperature setpoints. It should be 
-             called once every second by ctrl_task().
-  Variables: -
-  Returns  : -
-  ---------------------------------------------------------------------------*/
-void temperature_control(void)
-{
-    init_temp_delays(); // Initialise Heating and Cooling delay
-
-    // This is the thermostat logic
-    if (!pwr_on ||
-       (COOL_STATUS && (temp_ntc1 <= setpoint || (probe2 && (temp_ntc2 < (setpoint - hysteresis2))))) || 
-       (HEAT_STATUS && (temp_ntc1 >= setpoint || (probe2 && (temp_ntc2 > (setpoint + hysteresis2))))))
-    {
-        cooling_delay = min_to_sec(cd);
-        heating_delay = min_to_sec(hd);
-	RELAYS_OFF; // Disable Cooling and Heating relays
-        led_e &= ~(LED_HEAT | LED_COOL); // disable both LEDs
-    } // if
-    else if (!HEAT_STATUS && !COOL_STATUS) 
-    {
-	hysteresis2 >>= 2; // Divide hysteresis2 by 2
-	if ((temp_ntc1 > setpoint + hysteresis) && (!probe2 || (temp_ntc2 >= setpoint - hysteresis2))) 
-             enable_cooling(); // switch cooling relay
-        else led_e &= ~LED_COOL;
-	if ((temp_ntc1 < setpoint - hysteresis) && (probe2 || (temp_ntc2 <= setpoint + hysteresis2))) 
-	    enable_heating(); // switch heating relay
-	else led_e &= ~LED_HEAT;
-    } // else if
-} // temperature_control()
-
-/*-----------------------------------------------------------------------------
   Purpose  : This routine controls the PID controller. It should be 
              called once every second by ctrl_task() as long as TS is not 0. 
              The PID controller itself is called every TS seconds.
@@ -851,27 +787,4 @@ void pid_control(void)
         pid_ctrl(temp_ntc1,&pid_out,setpoint);
         pid_tmr = 0;
     } // if
-    // --------- Logic for HEATING -----------------------------------
-/*    if (!pwr_on || (HEAT_STATUS && (pid_out <= hysteresis)))
-    {   // heating and pid-output drops below hysteresis limit in E-1 %
-        heating_delay = min_to_sec(hd);
-	HEAT_OFF;           // Disable Heating
-        led_e &= ~LED_HEAT; // Disable LED indicator
-    } // if    
-    else if (!HEAT_STATUS && (pid_out >= hysteresis2))
-    {   // pwr_on && !heating && pid output exceeds hysteresis limit in E-1 %
-	enable_heating(); // switch heating relay
-    } // else if
-    // --------- Logic for COOLING -----------------------------------
-    if (!pwr_on || (COOL_STATUS && (pid_out >= -hysteresis)))
-    {   // cooling and pid-output exceeds upper hysteresis limit in E-1 %
-        cooling_delay = min_to_sec(cd);
-	COOL_OFF; // Disable cooling
-        led_e &= ~LED_COOL; // Disable LED indicator
-    } // if    
-    else if (!COOL_STATUS && (pid_out <= -hysteresis2))
-    {   // pwr_on && !cooling && pid-output drops below hysteresis limit in E-1 %
-	enable_cooling(); // switch cooling relay
-    } // else if
-*/
 } // pid_control()

@@ -956,1320 +956,1154 @@
 4185       00000002      OFST:	set	2
 4188                     ; 387     disable_interrupts();     // Disable interrups while reading buttons
 4191  03f2 9b            sim
-4193                     ; 389     portc   = PC_IDR & PORTC_LEDS;
-4196  03f3 c6500b        	ld	a,_PC_IDR
-4197  03f6 a4f8          	and	a,#248
-4198  03f8 b701          	ld	_portc,a
-4199                     ; 390     portd   = PD_IDR & PORTD_LEDS; 
+4193                     ; 389     porte   = PE_IDR & SEG7_C;    // Save 7-segment C status
+4196  03f3 c65015        	ld	a,_PE_IDR
+4197  03f6 a401          	and	a,#1
+4198  03f8 b700          	ld	_porte,a
+4199                     ; 390     portd   = PD_IDR & PORTD_OUT; // Save other 7-segments
 4201  03fa c65010        	ld	a,_PD_IDR
-4202  03fd a41c          	and	a,#28
-4203  03ff b700          	ld	_portd,a
-4204                     ; 391     PC_ODR |= PORTC_LEDS;    // disable 7-segment displays
-4206  0401 c6500a        	ld	a,_PC_ODR
-4207  0404 aaf8          	or	a,#248
-4208  0406 c7500a        	ld	_PC_ODR,a
-4209                     ; 392     PD_ODR |= PORTD_LEDS;    // disable 7-segment displays
-4211  0409 c6500f        	ld	a,_PD_ODR
-4212  040c aa1c          	or	a,#28
-4213  040e c7500f        	ld	_PD_ODR,a
-4214                     ; 393     hc164_state = hc164_val; // save current hc164_val
-4216  0411 b600          	ld	a,_hc164_val
-4217  0413 6b01          	ld	(OFST-1,sp),a
-4219                     ; 394     set_hc164(0x00);
-4221  0415 4f            	clr	a
-4222  0416 cd0000        	call	_set_hc164
-4224                     ; 396     for (i = 0x88; i > 0x0F; i >>= 1)
-4226  0419 a688          	ld	a,#136
-4227  041b 6b02          	ld	(OFST+0,sp),a
-4229  041d               L1332:
-4230                     ; 398        set_hc164(i);
-4232  041d 7b02          	ld	a,(OFST+0,sp)
-4233  041f cd0000        	call	_set_hc164
-4235                     ; 399        _buttons <<= 1;
-4237  0422 3809          	sll	__buttons
-4238                     ; 400        _buttons  &= 0xFE; // clear bit 0
-4240  0424 72110009      	bres	__buttons,#0
-4241                     ; 401        if (PB_IDR & KEYS) _buttons |= 0x01;
-4243  0428 c65006        	ld	a,_PB_IDR
-4244  042b a520          	bcp	a,#32
-4245  042d 2704          	jreq	L7332
-4248  042f 72100009      	bset	__buttons,#0
-4249  0433               L7332:
-4250                     ; 402        set_hc164(0x00);
-4252  0433 4f            	clr	a
-4253  0434 cd0000        	call	_set_hc164
-4255                     ; 396     for (i = 0x88; i > 0x0F; i >>= 1)
-4257  0437 0402          	srl	(OFST+0,sp)
-4261  0439 7b02          	ld	a,(OFST+0,sp)
-4262  043b a110          	cp	a,#16
-4263  043d 24de          	jruge	L1332
-4264                     ; 404     top_100 = top_10 = top_1 = top_01 = LED_0;
-4266  043f 35e70000      	mov	_top_01,#231
-4267  0443 450000        	mov	_top_1,_top_01
-4268  0446 450000        	mov	_top_10,_top_1
-4269  0449 450000        	mov	_top_100,_top_10
-4270                     ; 405     if (_buttons & 0x08) top_100 = LED_1;
-4272  044c b609          	ld	a,__buttons
-4273  044e a508          	bcp	a,#8
-4274  0450 2704          	jreq	L1432
-4277  0452 35030000      	mov	_top_100,#3
-4278  0456               L1432:
-4279                     ; 406     if (_buttons & 0x04) top_10  = LED_1;
-4281  0456 b609          	ld	a,__buttons
-4282  0458 a504          	bcp	a,#4
-4283  045a 2704          	jreq	L3432
-4286  045c 35030000      	mov	_top_10,#3
-4287  0460               L3432:
-4288                     ; 407     if (_buttons & 0x02) top_1   = LED_1;
-4290  0460 b609          	ld	a,__buttons
-4291  0462 a502          	bcp	a,#2
-4292  0464 2704          	jreq	L5432
-4295  0466 35030000      	mov	_top_1,#3
-4296  046a               L5432:
-4297                     ; 408     if (_buttons & 0x01) top_01  = LED_1;
-4299  046a b609          	ld	a,__buttons
-4300  046c a501          	bcp	a,#1
-4301  046e 2704          	jreq	L7432
-4304  0470 35030000      	mov	_top_01,#3
-4305  0474               L7432:
-4306                     ; 411     set_hc164(hc164_state); // restore HC164 state
-4308  0474 7b01          	ld	a,(OFST-1,sp)
-4309  0476 cd0000        	call	_set_hc164
-4311                     ; 412     PD_ODR &= ~PORTD_LEDS;
-4313  0479 c6500f        	ld	a,_PD_ODR
-4314  047c a4e3          	and	a,#227
-4315  047e c7500f        	ld	_PD_ODR,a
-4316                     ; 413     PD_ODR |= portd;        // restore PORTD
-4318  0481 c6500f        	ld	a,_PD_ODR
-4319  0484 ba00          	or	a,_portd
-4320  0486 c7500f        	ld	_PD_ODR,a
-4321                     ; 414     PC_ODR &= ~PORTC_LEDS;
-4323  0489 c6500a        	ld	a,_PC_ODR
-4324  048c a407          	and	a,#7
-4325  048e c7500a        	ld	_PC_ODR,a
-4326                     ; 415     PC_ODR |= portc;        // restore PORTC
-4328  0491 c6500a        	ld	a,_PC_ODR
-4329  0494 ba01          	or	a,_portc
-4330  0496 c7500a        	ld	_PC_ODR,a
-4331                     ; 416     enable_interrupts();    // Re-enable Interrupts
-4334  0499 9a            rim
-4336                     ; 417 } // read_buttons()
-4340  049a 85            	popw	x
-4341  049b 81            	ret
-4429                     	switch	.const
-4430  0056               L611:
-4431  0056 04b4          	dc.w	L1532
-4432  0058 0594          	dc.w	L5532
-4433  005a 05bc          	dc.w	L7532
-4434  005c 05e9          	dc.w	L1632
-4435  005e 061c          	dc.w	L3632
-4436  0060 0644          	dc.w	L5632
-4437  0062 0523          	dc.w	L3532
-4438  0064 067d          	dc.w	L7632
-4439  0066 0692          	dc.w	L1732
-4440  0068 06ef          	dc.w	L3732
-4441  006a 074c          	dc.w	L5732
-4442  006c 081b          	dc.w	L1042
-4443  006e 0873          	dc.w	L3042
-4444                     ; 426 void menu_fsm(void)
-4444                     ; 427 {
-4445                     	switch	.text
-4446  049c               _menu_fsm:
-4448  049c 89            	pushw	x
-4449       00000002      OFST:	set	2
-4452                     ; 430    if (m_countdown) m_countdown--; // countdown counter
-4454  049d 3d08          	tnz	_m_countdown
-4455  049f 2702          	jreq	L3442
-4458  04a1 3a08          	dec	_m_countdown
-4459  04a3               L3442:
-4460                     ; 432    switch (menustate)
-4462  04a3 b605          	ld	a,_menustate
-4464                     ; 728             break;
-4465  04a5 a10d          	cp	a,#13
-4466  04a7 2407          	jruge	L411
-4467  04a9 5f            	clrw	x
-4468  04aa 97            	ld	xl,a
-4469  04ab 58            	sllw	x
-4470  04ac de0056        	ldw	x,(L611,x)
-4471  04af fc            	jp	(x)
-4472  04b0               L411:
-4473  04b0 ac800980      	jpf	L7042
-4474  04b4               L1532:
-4475                     ; 435        case MENU_IDLE:
-4475                     ; 436 	    if(BTN_PRESSED(BTN_PWR))
-4477  04b4 b609          	ld	a,__buttons
-4478  04b6 a422          	and	a,#34
-4479  04b8 a102          	cp	a,#2
-4480  04ba 260c          	jrne	L1542
-4481                     ; 438                 m_countdown = TMR_POWERDOWN;
-4483  04bc 351e0008      	mov	_m_countdown,#30
-4484                     ; 439                 menustate   = MENU_POWER_DOWN_WAIT;
-4486  04c0 35060005      	mov	_menustate,#6
-4488  04c4 ac820982      	jpf	L7442
-4489  04c8               L1542:
-4490                     ; 440 	    } else if(_buttons && eeprom_read_config(EEADR_POWER_ON))
-4492  04c8 3d09          	tnz	__buttons
-4493  04ca 2603          	jrne	L421
-4494  04cc cc0982        	jp	L7442
-4495  04cf               L421:
-4497  04cf a685          	ld	a,#133
-4498  04d1 cd0000        	call	_eeprom_read_config
-4500  04d4 a30000        	cpw	x,#0
-4501  04d7 2603          	jrne	L621
-4502  04d9 cc0982        	jp	L7442
-4503  04dc               L621:
-4504                     ; 442                 if (BTN_PRESSED(BTN_UP | BTN_DOWN)) 
-4506  04dc b609          	ld	a,__buttons
-4507  04de a4cc          	and	a,#204
-4508  04e0 a10c          	cp	a,#12
-4509  04e2 2608          	jrne	L7542
-4510                     ; 444                     menustate = MENU_SHOW_VERSION;
-4512  04e4 35010005      	mov	_menustate,#1
-4514  04e8 ac820982      	jpf	L7442
-4515  04ec               L7542:
-4516                     ; 445                 } else if(BTN_PRESSED(BTN_UP))
-4518  04ec b609          	ld	a,__buttons
-4519  04ee a488          	and	a,#136
-4520  04f0 a108          	cp	a,#8
-4521  04f2 2608          	jrne	L3642
-4522                     ; 447                     menustate = MENU_SHOW_STATE_UP;
-4524  04f4 35020005      	mov	_menustate,#2
-4526  04f8 ac820982      	jpf	L7442
-4527  04fc               L3642:
-4528                     ; 448                 } else if(BTN_PRESSED(BTN_DOWN))
-4530  04fc b609          	ld	a,__buttons
-4531  04fe a444          	and	a,#68
-4532  0500 a104          	cp	a,#4
-4533  0502 260c          	jrne	L7642
-4534                     ; 450                     m_countdown = TMR_SHOW_PROFILE_ITEM;
-4536  0504 350f0008      	mov	_m_countdown,#15
-4537                     ; 451                     menustate   = MENU_SHOW_STATE_DOWN;
-4539  0508 35030005      	mov	_menustate,#3
-4541  050c ac820982      	jpf	L7442
-4542  0510               L7642:
-4543                     ; 452                 } else if(BTN_RELEASED(BTN_S))
-4545  0510 b609          	ld	a,__buttons
-4546  0512 a411          	and	a,#17
-4547  0514 a110          	cp	a,#16
-4548  0516 2703          	jreq	L031
-4549  0518 cc0982        	jp	L7442
-4550  051b               L031:
-4551                     ; 454                     menustate = MENU_SHOW_MENU_ITEM;
-4553  051b 35070005      	mov	_menustate,#7
-4554  051f ac820982      	jpf	L7442
-4555  0523               L3532:
-4556                     ; 459        case MENU_POWER_DOWN_WAIT:
-4556                     ; 460             if (m_countdown == 0)
-4558  0523 3d08          	tnz	_m_countdown
-4559  0525 263f          	jrne	L5742
-4560                     ; 462                 pwr_on = eeprom_read_config(EEADR_POWER_ON);
-4562  0527 a685          	ld	a,#133
-4563  0529 cd0000        	call	_eeprom_read_config
-4565  052c a30000        	cpw	x,#0
-4566  052f 2602          	jrne	L231
-4567  0531 2006          	jp	L001
-4568  0533               L231:
-4569  0533 72100001      	bset	_pwr_on
-4570  0537 2004          	jra	L201
-4571  0539               L001:
-4572  0539 72110001      	bres	_pwr_on
-4573  053d               L201:
-4574                     ; 463                 pwr_on = !pwr_on;
-4576  053d 90100001      	bcpl	_pwr_on
-4577                     ; 464                 eeprom_write_config(EEADR_POWER_ON, pwr_on);
-4579  0541 5f            	clrw	x
-4580                     	btst	_pwr_on
-4581  0547 59            	rlcw	x
-4582  0548 89            	pushw	x
-4583  0549 a685          	ld	a,#133
-4584  054b cd0000        	call	_eeprom_write_config
-4586  054e 85            	popw	x
-4587                     ; 465                 if (pwr_on)
-4589                     	btst	_pwr_on
-4590  0554 240a          	jruge	L7742
-4591                     ; 467                     heating_delay = 60; // 60 sec.
-4593  0556 ae003c        	ldw	x,#60
-4594  0559 bf03          	ldw	_heating_delay,x
-4595                     ; 468                     cooling_delay = 60; // 60 sec.
-4597  055b ae003c        	ldw	x,#60
-4598  055e bf01          	ldw	_cooling_delay,x
-4599  0560               L7742:
-4600                     ; 470                 menustate = MENU_IDLE;
-4602  0560 3f05          	clr	_menustate
-4604  0562 ac820982      	jpf	L7442
-4605  0566               L5742:
-4606                     ; 471             } else if(!BTN_HELD(BTN_PWR))
-4608  0566 b609          	ld	a,__buttons
-4609  0568 a422          	and	a,#34
-4610  056a a122          	cp	a,#34
-4611  056c 2603          	jrne	L431
-4612  056e cc0982        	jp	L7442
-4613  0571               L431:
-4614                     ; 473                 if (++sensor2_selected > 1 + (ts > 0)) sensor2_selected = 0;
-4616  0571 9c            	rvf
-4617  0572 3d00          	tnz	_ts
-4618  0574 2705          	jreq	L401
-4619  0576 ae0001        	ldw	x,#1
-4620  0579 2001          	jra	L601
-4621  057b               L401:
-4622  057b 5f            	clrw	x
-4623  057c               L601:
-4624  057c 5c            	incw	x
-4625  057d 3c0a          	inc	_sensor2_selected
-4626  057f b60a          	ld	a,_sensor2_selected
-4627  0581 905f          	clrw	y
-4628  0583 9097          	ld	yl,a
-4629  0585 bf00          	ldw	c_x,x
-4630  0587 90b300        	cpw	y,c_x
-4631  058a 2d02          	jrsle	L5052
-4634  058c 3f0a          	clr	_sensor2_selected
-4635  058e               L5052:
-4636                     ; 474                 menustate = MENU_IDLE;
-4638  058e 3f05          	clr	_menustate
-4639  0590 ac820982      	jpf	L7442
-4640  0594               L5532:
-4641                     ; 478        case MENU_SHOW_VERSION: // Show STC1000p version number
-4641                     ; 479             value_to_led(STC1000P_VERSION,LEDS_INT);
-4643  0594 4b00          	push	#0
-4644  0596 ae00c8        	ldw	x,#200
-4645  0599 cd009f        	call	_value_to_led
-4647  059c 84            	pop	a
-4648                     ; 480 	    led_10 |= LED_DECIMAL;
-4650  059d 7216000d      	bset	_led_10,#3
-4651                     ; 481             led_1  |= LED_DECIMAL;
-4653  05a1 7216000c      	bset	_led_1,#3
-4654                     ; 482 	    led_e  &= ~(LED_DEGR | LED_CELS); // clear ° and Celsius symbols
-4656  05a5 b600          	ld	a,_led_e
-4657  05a7 a49f          	and	a,#159
-4658  05a9 b700          	ld	_led_e,a
-4659                     ; 483 	    if(!BTN_HELD(BTN_UP | BTN_DOWN)) menustate = MENU_IDLE;
-4661  05ab b609          	ld	a,__buttons
-4662  05ad a4cc          	and	a,#204
-4663  05af a1cc          	cp	a,#204
-4664  05b1 2603          	jrne	L631
-4665  05b3 cc0982        	jp	L7442
-4666  05b6               L631:
-4669  05b6 3f05          	clr	_menustate
-4670  05b8 ac820982      	jpf	L7442
-4671  05bc               L7532:
-4672                     ; 486        case MENU_SHOW_STATE_UP: // Show setpoint value
-4672                     ; 487 	    if (minutes) // is timing-control in minutes?
-4674                     	btst	_minutes
-4675  05c1 240a          	jruge	L1152
-4676                     ; 488                  value_to_led(setpoint,LEDS_TEMP);
-4678  05c3 4b01          	push	#1
-4679  05c5 be06          	ldw	x,_setpoint
-4680  05c7 cd009f        	call	_value_to_led
-4682  05ca 84            	pop	a
-4684  05cb 200b          	jra	L3152
-4685  05cd               L1152:
-4686                     ; 489 	    else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(SP)),LEDS_TEMP);
-4688  05cd 4b01          	push	#1
-4689  05cf a672          	ld	a,#114
-4690  05d1 cd0000        	call	_eeprom_read_config
-4692  05d4 cd009f        	call	_value_to_led
-4694  05d7 84            	pop	a
-4695  05d8               L3152:
-4696                     ; 490 	    if(!BTN_HELD(BTN_UP)) menustate = MENU_IDLE;
-4698  05d8 b609          	ld	a,__buttons
-4699  05da a488          	and	a,#136
-4700  05dc a188          	cp	a,#136
-4701  05de 2603          	jrne	L041
-4702  05e0 cc0982        	jp	L7442
-4703  05e3               L041:
-4706  05e3 3f05          	clr	_menustate
-4707  05e5 ac820982      	jpf	L7442
-4708  05e9               L1632:
-4709                     ; 493        case MENU_SHOW_STATE_DOWN: // Show Profile-number
-4709                     ; 494 	    run_mode = eeprom_read_config(EEADR_MENU_ITEM(rn));
-4711  05e9 a684          	ld	a,#132
-4712  05eb cd0000        	call	_eeprom_read_config
-4714  05ee 01            	rrwa	x,a
-4715  05ef 6b02          	ld	(OFST+0,sp),a
-4716  05f1 02            	rlwa	x,a
-4718                     ; 495             prx_to_led(run_mode,LEDS_RUN_MODE);
-4720  05f2 7b02          	ld	a,(OFST+0,sp)
-4721  05f4 5f            	clrw	x
-4722  05f5 95            	ld	xh,a
-4723  05f6 cd0051        	call	_prx_to_led
-4725                     ; 496             if ((run_mode < THERMOSTAT_MODE) && (m_countdown == 0))
-4727  05f9 7b02          	ld	a,(OFST+0,sp)
-4728  05fb a106          	cp	a,#6
-4729  05fd 240c          	jruge	L7152
-4731  05ff 3d08          	tnz	_m_countdown
-4732  0601 2608          	jrne	L7152
-4733                     ; 498                 m_countdown = TMR_SHOW_PROFILE_ITEM;
-4735  0603 350f0008      	mov	_m_countdown,#15
-4736                     ; 499                 menustate   = MENU_SHOW_STATE_DOWN_2;
-4738  0607 35040005      	mov	_menustate,#4
-4739  060b               L7152:
-4740                     ; 501 	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
-4742  060b b609          	ld	a,__buttons
-4743  060d a444          	and	a,#68
-4744  060f a144          	cp	a,#68
-4745  0611 2603          	jrne	L241
-4746  0613 cc0982        	jp	L7442
-4747  0616               L241:
-4750  0616 3f05          	clr	_menustate
-4751  0618 ac820982      	jpf	L7442
-4752  061c               L3632:
-4753                     ; 504        case MENU_SHOW_STATE_DOWN_2: // Show current step number within profile
-4753                     ; 505 	    value_to_led(eeprom_read_config(EEADR_MENU_ITEM(St)),LEDS_INT);
-4755  061c 4b00          	push	#0
-4756  061e a678          	ld	a,#120
-4757  0620 cd0000        	call	_eeprom_read_config
-4759  0623 cd009f        	call	_value_to_led
-4761  0626 84            	pop	a
-4762                     ; 506 	    if(m_countdown == 0)
-4764  0627 3d08          	tnz	_m_countdown
-4765  0629 2608          	jrne	L3252
-4766                     ; 508                 m_countdown = TMR_SHOW_PROFILE_ITEM;
-4768  062b 350f0008      	mov	_m_countdown,#15
-4769                     ; 509                 menustate   = MENU_SHOW_STATE_DOWN_3;
-4771  062f 35050005      	mov	_menustate,#5
-4772  0633               L3252:
-4773                     ; 511 	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
-4775  0633 b609          	ld	a,__buttons
-4776  0635 a444          	and	a,#68
-4777  0637 a144          	cp	a,#68
-4778  0639 2603          	jrne	L441
-4779  063b cc0982        	jp	L7442
-4780  063e               L441:
-4783  063e 3f05          	clr	_menustate
-4784  0640 ac820982      	jpf	L7442
-4785  0644               L5632:
-4786                     ; 514        case MENU_SHOW_STATE_DOWN_3: // Show current duration of running profile
-4786                     ; 515             if (minutes) // is timing-control in minutes?
-4788                     	btst	_minutes
-4789  0649 240a          	jruge	L7252
-4790                     ; 516                  value_to_led(curr_dur,LEDS_INT);
-4792  064b 4b00          	push	#0
-4793  064d be0b          	ldw	x,_curr_dur
-4794  064f cd009f        	call	_value_to_led
-4796  0652 84            	pop	a
-4798  0653 200b          	jra	L1352
-4799  0655               L7252:
-4800                     ; 517             else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(dh)),LEDS_INT);
-4802  0655 4b00          	push	#0
-4803  0657 a679          	ld	a,#121
-4804  0659 cd0000        	call	_eeprom_read_config
-4806  065c cd009f        	call	_value_to_led
-4808  065f 84            	pop	a
-4809  0660               L1352:
-4810                     ; 518             if(m_countdown == 0)
-4812  0660 3d08          	tnz	_m_countdown
-4813  0662 2608          	jrne	L3352
-4814                     ; 520                 m_countdown = TMR_SHOW_PROFILE_ITEM;
-4816  0664 350f0008      	mov	_m_countdown,#15
-4817                     ; 521                 menustate   = MENU_SHOW_STATE_DOWN;
-4819  0668 35030005      	mov	_menustate,#3
-4820  066c               L3352:
-4821                     ; 523             if(!BTN_HELD(BTN_DOWN))
-4823  066c b609          	ld	a,__buttons
-4824  066e a444          	and	a,#68
-4825  0670 a144          	cp	a,#68
-4826  0672 2603          	jrne	L641
-4827  0674 cc0982        	jp	L7442
-4828  0677               L641:
-4829                     ; 525                 menustate = MENU_IDLE;
-4831  0677 3f05          	clr	_menustate
-4832  0679 ac820982      	jpf	L7442
-4833  067d               L7632:
-4834                     ; 529        case MENU_SHOW_MENU_ITEM: // S-button was pressed
-4834                     ; 530             prx_to_led(menu_item, LEDS_MENU);
-4836  067d b606          	ld	a,_menu_item
-4837  067f ae0001        	ldw	x,#1
-4838  0682 95            	ld	xh,a
-4839  0683 cd0051        	call	_prx_to_led
-4841                     ; 531             m_countdown = TMR_NO_KEY_TIMEOUT;
-4843  0686 35960008      	mov	_m_countdown,#150
-4844                     ; 532             menustate   = MENU_SET_MENU_ITEM;
-4846  068a 35080005      	mov	_menustate,#8
-4847                     ; 533             break; // MENU_SHOW_MENU_ITEM
-4849  068e ac820982      	jpf	L7442
-4850  0692               L1732:
-4851                     ; 535        case MENU_SET_MENU_ITEM:
-4851                     ; 536             if(m_countdown == 0 || BTN_RELEASED(BTN_PWR))
-4853  0692 3d08          	tnz	_m_countdown
-4854  0694 2708          	jreq	L1452
-4856  0696 b609          	ld	a,__buttons
-4857  0698 a422          	and	a,#34
-4858  069a a120          	cp	a,#32
-4859  069c 2606          	jrne	L7352
-4860  069e               L1452:
-4861                     ; 538                 menustate = MENU_IDLE;
-4863  069e 3f05          	clr	_menustate
-4865  06a0 ac820982      	jpf	L7442
-4866  06a4               L7352:
-4867                     ; 539             } else if(BTN_RELEASED(BTN_UP))
-4869  06a4 b609          	ld	a,__buttons
-4870  06a6 a488          	and	a,#136
-4871  06a8 a180          	cp	a,#128
-4872  06aa 2612          	jrne	L5452
-4873                     ; 541                 if(++menu_item > MENU_ITEM_NO) menu_item = 0;
-4875  06ac 3c06          	inc	_menu_item
-4876  06ae b606          	ld	a,_menu_item
-4877  06b0 a107          	cp	a,#7
-4878  06b2 2502          	jrult	L7452
-4881  06b4 3f06          	clr	_menu_item
-4882  06b6               L7452:
-4883                     ; 542                 menustate = MENU_SHOW_MENU_ITEM;
-4885  06b6 35070005      	mov	_menustate,#7
-4887  06ba ac820982      	jpf	L7442
-4888  06be               L5452:
-4889                     ; 543             } else if(BTN_RELEASED(BTN_DOWN))
-4891  06be b609          	ld	a,__buttons
-4892  06c0 a444          	and	a,#68
-4893  06c2 a140          	cp	a,#64
-4894  06c4 2614          	jrne	L3552
-4895                     ; 545                 if(--menu_item > MENU_ITEM_NO) menu_item = MENU_ITEM_NO;
-4897  06c6 3a06          	dec	_menu_item
-4898  06c8 b606          	ld	a,_menu_item
-4899  06ca a107          	cp	a,#7
-4900  06cc 2504          	jrult	L5552
-4903  06ce 35060006      	mov	_menu_item,#6
-4904  06d2               L5552:
-4905                     ; 546                 menustate = MENU_SHOW_MENU_ITEM;
-4907  06d2 35070005      	mov	_menustate,#7
-4909  06d6 ac820982      	jpf	L7442
-4910  06da               L3552:
-4911                     ; 547             } else if(BTN_RELEASED(BTN_S))
-4913  06da b609          	ld	a,__buttons
-4914  06dc a411          	and	a,#17
-4915  06de a110          	cp	a,#16
-4916  06e0 2703          	jreq	L051
-4917  06e2 cc0982        	jp	L7442
-4918  06e5               L051:
-4919                     ; 549                 config_item = 0;
-4921  06e5 3f07          	clr	_config_item
-4922                     ; 550                 menustate   = MENU_SHOW_CONFIG_ITEM;
-4924  06e7 35090005      	mov	_menustate,#9
-4925  06eb ac820982      	jpf	L7442
-4926  06ef               L3732:
-4927                     ; 554        case MENU_SHOW_CONFIG_ITEM: // S-button is released
-4927                     ; 555 	    led_e &= ~(LED_NEG | LED_DEGR | LED_CELS); // clear negative, ° and Celsius symbols
-4929  06ef b600          	ld	a,_led_e
-4930  06f1 a41f          	and	a,#31
-4931  06f3 b700          	ld	_led_e,a
-4932                     ; 557 	    if(menu_item < MENU_ITEM_NO)
-4934  06f5 b606          	ld	a,_menu_item
-4935  06f7 a106          	cp	a,#6
-4936  06f9 2424          	jruge	L3652
-4937                     ; 559                 if(config_item & 0x1) 
-4939  06fb b607          	ld	a,_config_item
-4940  06fd a501          	bcp	a,#1
-4941  06ff 270a          	jreq	L5652
-4942                     ; 561                     led_10 = LED_d; // duration: 2nd value of a profile-step
-4944  0701 35d3000d      	mov	_led_10,#211
-4945                     ; 562                     led_1  = LED_h;
-4947  0705 3571000c      	mov	_led_1,#113
-4949  0709 2008          	jra	L7652
-4950  070b               L5652:
-4951                     ; 564                     led_10 = LED_S; // setpoint: 1st value of a profile-step
-4953  070b 35b5000d      	mov	_led_10,#181
-4954                     ; 565                     led_1  = LED_P;
-4956  070f 3576000c      	mov	_led_1,#118
-4957  0713               L7652:
-4958                     ; 567                 led_01 = led_lookup[(config_item >> 1)];
-4960  0713 b607          	ld	a,_config_item
-4961  0715 44            	srl	a
-4962  0716 5f            	clrw	x
-4963  0717 97            	ld	xl,a
-4964  0718 d60000        	ld	a,(_led_lookup,x)
-4965  071b b70b          	ld	_led_01,a
-4967  071d 2021          	jra	L1752
-4968  071f               L3652:
-4969                     ; 570                 led_10 = menu[config_item].led_c_10;
-4971  071f b607          	ld	a,_config_item
-4972  0721 97            	ld	xl,a
-4973  0722 a604          	ld	a,#4
-4974  0724 42            	mul	x,a
-4975  0725 d6000a        	ld	a,(_menu,x)
-4976  0728 b70d          	ld	_led_10,a
-4977                     ; 571                 led_1  = menu[config_item].led_c_1;
-4979  072a b607          	ld	a,_config_item
-4980  072c 97            	ld	xl,a
-4981  072d a604          	ld	a,#4
-4982  072f 42            	mul	x,a
-4983  0730 d6000b        	ld	a,(_menu+1,x)
-4984  0733 b70c          	ld	_led_1,a
-4985                     ; 572                 led_01 = menu[config_item].led_c_01;
-4987  0735 b607          	ld	a,_config_item
-4988  0737 97            	ld	xl,a
-4989  0738 a604          	ld	a,#4
-4990  073a 42            	mul	x,a
-4991  073b d6000c        	ld	a,(_menu+2,x)
-4992  073e b70b          	ld	_led_01,a
-4993  0740               L1752:
-4994                     ; 574 	    m_countdown = TMR_NO_KEY_TIMEOUT;
-4996  0740 35960008      	mov	_m_countdown,#150
-4997                     ; 575 	    menustate   = MENU_SET_CONFIG_ITEM;
-4999  0744 350a0005      	mov	_menustate,#10
-5000                     ; 576 	    break;
-5002  0748 ac820982      	jpf	L7442
-5003  074c               L5732:
-5004                     ; 578        case MENU_SET_CONFIG_ITEM:
-5004                     ; 579 	    if(m_countdown == 0)
-5006  074c 3d08          	tnz	_m_countdown
-5007  074e 2606          	jrne	L3752
-5008                     ; 581                 menustate = MENU_IDLE;
-5010  0750 3f05          	clr	_menustate
-5012  0752 ac820982      	jpf	L7442
-5013  0756               L3752:
-5014                     ; 582 	    } else if(BTN_RELEASED(BTN_PWR))
-5016  0756 b609          	ld	a,__buttons
-5017  0758 a422          	and	a,#34
-5018  075a a120          	cp	a,#32
-5019  075c 2608          	jrne	L7752
-5020                     ; 584                 menustate = MENU_SHOW_MENU_ITEM;
-5022  075e 35070005      	mov	_menustate,#7
-5024  0762 ac820982      	jpf	L7442
-5025  0766               L7752:
-5026                     ; 585             } else if(BTN_RELEASED(BTN_UP))
-5028  0766 b609          	ld	a,__buttons
-5029  0768 a488          	and	a,#136
-5030  076a a180          	cp	a,#128
-5031  076c 2624          	jrne	L3062
-5032                     ; 587                 config_item++;
-5034  076e 3c07          	inc	_config_item
-5035                     ; 588                 if(menu_item < MENU_ITEM_NO)
-5037  0770 b606          	ld	a,_menu_item
-5038  0772 a106          	cp	a,#6
-5039  0774 240a          	jruge	L5062
-5040                     ; 590                     if(config_item >= PROFILE_SIZE)
-5042  0776 b607          	ld	a,_config_item
-5043  0778 a113          	cp	a,#19
-5044  077a 250e          	jrult	L1162
-5045                     ; 592                         config_item = 0;
-5047  077c 3f07          	clr	_config_item
-5048  077e 200a          	jra	L1162
-5049  0780               L5062:
-5050                     ; 595                     if(config_item >= MENU_SIZE)
-5052  0780 b607          	ld	a,_config_item
-5053  0782 a113          	cp	a,#19
-5054  0784 2532          	jrult	L7732
-5055                     ; 597                         config_item = 0;
-5057  0786 3f07          	clr	_config_item
-5058  0788 202e          	jra	L7732
-5059  078a               L1162:
-5060                     ; 603                 menustate = MENU_SHOW_CONFIG_ITEM;
-5062  078a 35090005      	mov	_menustate,#9
-5064  078e ac820982      	jpf	L7442
-5065  0792               L3062:
-5066                     ; 604             } else if(BTN_RELEASED(BTN_DOWN))
-5068  0792 b609          	ld	a,__buttons
-5069  0794 a444          	and	a,#68
-5070  0796 a140          	cp	a,#64
-5071  0798 264d          	jrne	L7162
-5072                     ; 606                 config_item--;
-5074  079a 3a07          	dec	_config_item
-5075                     ; 607                 if(menu_item < MENU_ITEM_NO)
-5077  079c b606          	ld	a,_menu_item
-5078  079e a106          	cp	a,#6
-5079  07a0 240c          	jruge	L1262
-5080                     ; 609                     if(config_item >= PROFILE_SIZE)
-5082  07a2 b607          	ld	a,_config_item
-5083  07a4 a113          	cp	a,#19
-5084  07a6 2537          	jrult	L5262
-5085                     ; 611                         config_item = PROFILE_SIZE-1;
-5087  07a8 35120007      	mov	_config_item,#18
-5088  07ac 2031          	jra	L5262
-5089  07ae               L1262:
-5090                     ; 614                     if(config_item > MENU_SIZE-1)
-5092  07ae b607          	ld	a,_config_item
-5093  07b0 a113          	cp	a,#19
-5094  07b2 2504          	jrult	L7732
-5095                     ; 616                         config_item = MENU_SIZE-1;
-5097  07b4 35120007      	mov	_config_item,#18
-5098  07b8               L7732:
-5099                     ; 618             chk_skip_menu_item: // label for goto
-5099                     ; 619                     if (!minutes && ((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn)) >= THERMOSTAT_MODE))
-5101                     	btst	_minutes
-5102  07bd 2520          	jrult	L5262
-5104  07bf a684          	ld	a,#132
-5105  07c1 cd0000        	call	_eeprom_read_config
-5107  07c4 9f            	ld	a,xl
-5108  07c5 a106          	cp	a,#6
-5109  07c7 2516          	jrult	L5262
-5110                     ; 621                         if (config_item == St)
-5112  07c9 b607          	ld	a,_config_item
-5113  07cb a106          	cp	a,#6
-5114  07cd 2606          	jrne	L3362
-5115                     ; 623                             config_item += 2;
-5117  07cf 3c07          	inc	_config_item
-5118  07d1 3c07          	inc	_config_item
-5120  07d3 200a          	jra	L5262
-5121  07d5               L3362:
-5122                     ; 624                         }else if (config_item == dh)
-5124  07d5 b607          	ld	a,_config_item
-5125  07d7 a107          	cp	a,#7
-5126  07d9 2604          	jrne	L5262
-5127                     ; 626                             config_item -= 2;
-5129  07db 3a07          	dec	_config_item
-5130  07dd 3a07          	dec	_config_item
-5131  07df               L5262:
-5132                     ; 630                 menustate = MENU_SHOW_CONFIG_ITEM;
-5134  07df 35090005      	mov	_menustate,#9
-5136  07e3 ac820982      	jpf	L7442
-5137  07e7               L7162:
-5138                     ; 631             } else if(BTN_RELEASED(BTN_S))
-5140  07e7 b609          	ld	a,__buttons
-5141  07e9 a411          	and	a,#17
-5142  07eb a110          	cp	a,#16
-5143  07ed 2703          	jreq	L251
-5144  07ef cc0982        	jp	L7442
-5145  07f2               L251:
-5146                     ; 633                 adr          = MI_CI_TO_EEADR(menu_item, config_item);
-5148  07f2 b606          	ld	a,_menu_item
-5149  07f4 97            	ld	xl,a
-5150  07f5 a613          	ld	a,#19
-5151  07f7 42            	mul	x,a
-5152  07f8 9f            	ld	a,xl
-5153  07f9 bb07          	add	a,_config_item
-5154  07fb 6b01          	ld	(OFST-1,sp),a
-5156                     ; 634                 config_value = eeprom_read_config(adr);
-5158  07fd 7b01          	ld	a,(OFST-1,sp)
-5159  07ff cd0000        	call	_eeprom_read_config
-5161  0802 bf09          	ldw	_config_value,x
-5162                     ; 635                 config_value = check_config_value(config_value, adr);
-5164  0804 7b01          	ld	a,(OFST-1,sp)
-5165  0806 88            	push	a
-5166  0807 be09          	ldw	x,_config_value
-5167  0809 cd029c        	call	_check_config_value
-5169  080c 84            	pop	a
-5170  080d bf09          	ldw	_config_value,x
-5171                     ; 636                 m_countdown  = TMR_NO_KEY_TIMEOUT;
-5173  080f 35960008      	mov	_m_countdown,#150
-5174                     ; 637                 menustate    = MENU_SHOW_CONFIG_VALUE;
-5176  0813 350b0005      	mov	_menustate,#11
-5177  0817 ac820982      	jpf	L7442
-5178  081b               L1042:
-5179                     ; 641        case MENU_SHOW_CONFIG_VALUE:
-5179                     ; 642             if(menu_item < MENU_ITEM_NO)
-5181  081b b606          	ld	a,_menu_item
-5182  081d a106          	cp	a,#6
-5183  081f 2414          	jruge	L5462
-5184                     ; 644                 value_to_led(config_value, (config_item & 0x1) ? LEDS_INT : LEDS_TEMP);
-5186  0821 b607          	ld	a,_config_item
-5187  0823 a501          	bcp	a,#1
-5188  0825 2703          	jreq	L011
-5189  0827 4f            	clr	a
-5190  0828 2002          	jra	L211
-5191  082a               L011:
-5192  082a a601          	ld	a,#1
-5193  082c               L211:
-5194  082c 88            	push	a
-5195  082d be09          	ldw	x,_config_value
-5196  082f cd009f        	call	_value_to_led
-5198  0832 84            	pop	a
-5200  0833 2032          	jra	L7462
-5201  0835               L5462:
-5202                     ; 647                 type = menu[config_item].type;
-5204  0835 b607          	ld	a,_config_item
-5205  0837 97            	ld	xl,a
-5206  0838 a604          	ld	a,#4
-5207  083a 42            	mul	x,a
-5208  083b d6000d        	ld	a,(_menu+3,x)
-5209  083e 6b02          	ld	(OFST+0,sp),a
-5211                     ; 648                 if(MENU_TYPE_IS_TEMPERATURE(type))
-5213  0840 7b02          	ld	a,(OFST+0,sp)
-5214  0842 a105          	cp	a,#5
-5215  0844 240a          	jruge	L1562
-5216                     ; 650                     value_to_led(config_value,LEDS_TEMP);
-5218  0846 4b01          	push	#1
-5219  0848 be09          	ldw	x,_config_value
-5220  084a cd009f        	call	_value_to_led
-5222  084d 84            	pop	a
-5224  084e 2017          	jra	L7462
-5225  0850               L1562:
-5226                     ; 651                 } else if (type == t_runmode)
-5228  0850 7b02          	ld	a,(OFST+0,sp)
-5229  0852 a107          	cp	a,#7
-5230  0854 2609          	jrne	L5562
-5231                     ; 653                     prx_to_led(config_value,LEDS_RUN_MODE);
-5233  0856 b60a          	ld	a,_config_value+1
-5234  0858 5f            	clrw	x
-5235  0859 95            	ld	xh,a
-5236  085a cd0051        	call	_prx_to_led
-5239  085d 2008          	jra	L7462
-5240  085f               L5562:
-5241                     ; 655                     value_to_led(config_value,LEDS_INT);
-5243  085f 4b00          	push	#0
-5244  0861 be09          	ldw	x,_config_value
-5245  0863 cd009f        	call	_value_to_led
-5247  0866 84            	pop	a
-5248  0867               L7462:
-5249                     ; 658             m_countdown  = TMR_NO_KEY_TIMEOUT;
-5251  0867 35960008      	mov	_m_countdown,#150
-5252                     ; 659             menustate    = MENU_SET_CONFIG_VALUE;
-5254  086b 350c0005      	mov	_menustate,#12
-5255                     ; 660             break;
-5257  086f ac820982      	jpf	L7442
-5258  0873               L3042:
-5259                     ; 662        case MENU_SET_CONFIG_VALUE:
-5259                     ; 663             adr = MI_CI_TO_EEADR(menu_item, config_item);
-5261  0873 b606          	ld	a,_menu_item
-5262  0875 97            	ld	xl,a
-5263  0876 a613          	ld	a,#19
-5264  0878 42            	mul	x,a
-5265  0879 9f            	ld	a,xl
-5266  087a bb07          	add	a,_config_item
-5267  087c 6b01          	ld	(OFST-1,sp),a
-5269                     ; 664             if (m_countdown == 0)
-5271  087e 3d08          	tnz	_m_countdown
-5272  0880 2606          	jrne	L1662
-5273                     ; 666                 menustate = MENU_IDLE;
-5275  0882 3f05          	clr	_menustate
-5277  0884 ac820982      	jpf	L7442
-5278  0888               L1662:
-5279                     ; 667             } else if (BTN_RELEASED(BTN_PWR))
-5281  0888 b609          	ld	a,__buttons
-5282  088a a422          	and	a,#34
-5283  088c a120          	cp	a,#32
-5284  088e 2608          	jrne	L5662
-5285                     ; 669                 menustate = MENU_SHOW_CONFIG_ITEM;
-5287  0890 35090005      	mov	_menustate,#9
-5289  0894 ac820982      	jpf	L7442
-5290  0898               L5662:
-5291                     ; 670             } else if(BTN_HELD_OR_RELEASED(BTN_UP)) 
-5293  0898 b609          	ld	a,__buttons
-5294  089a a488          	and	a,#136
-5295  089c a5f0          	bcp	a,#240
-5296  089e 271d          	jreq	L1762
-5297                     ; 672                 config_value++;
-5299  08a0 be09          	ldw	x,_config_value
-5300  08a2 1c0001        	addw	x,#1
-5301  08a5 bf09          	ldw	_config_value,x
-5302                     ; 673                 if ((config_value > 1000) || (--key_held_tmr < 0))
-5304  08a7 9c            	rvf
-5305  08a8 be09          	ldw	x,_config_value
-5306  08aa a303e9        	cpw	x,#1001
-5307  08ad 2e05          	jrsge	L5762
-5309  08af 9c            	rvf
-5310  08b0 3a08          	dec	_key_held_tmr
-5311  08b2 2e2c          	jrsge	L5042
-5312  08b4               L5762:
-5313                     ; 675                     config_value += 9;
-5315  08b4 be09          	ldw	x,_config_value
-5316  08b6 1c0009        	addw	x,#9
-5317  08b9 bf09          	ldw	_config_value,x
-5318  08bb 2023          	jra	L5042
-5319  08bd               L1762:
-5320                     ; 679             } else if(BTN_HELD_OR_RELEASED(BTN_DOWN)) 
-5322  08bd b609          	ld	a,__buttons
-5323  08bf a444          	and	a,#68
-5324  08c1 a5f0          	bcp	a,#240
-5325  08c3 272d          	jreq	L1072
-5326                     ; 681                 config_value--;
-5328  08c5 be09          	ldw	x,_config_value
-5329  08c7 1d0001        	subw	x,#1
-5330  08ca bf09          	ldw	_config_value,x
-5331                     ; 682                 if ((config_value > 1000) || (--key_held_tmr < 0))
-5333  08cc 9c            	rvf
-5334  08cd be09          	ldw	x,_config_value
-5335  08cf a303e9        	cpw	x,#1001
-5336  08d2 2e05          	jrsge	L5072
-5338  08d4 9c            	rvf
-5339  08d5 3a08          	dec	_key_held_tmr
-5340  08d7 2e07          	jrsge	L5042
-5341  08d9               L5072:
-5342                     ; 684                     config_value -= 9;
-5344  08d9 be09          	ldw	x,_config_value
-5345  08db 1d0009        	subw	x,#9
-5346  08de bf09          	ldw	_config_value,x
-5347  08e0               L5042:
-5348                     ; 686             chk_cfg_acc_label: // label for goto
-5348                     ; 687                 config_value = check_config_value(config_value, adr);
-5350  08e0 7b01          	ld	a,(OFST-1,sp)
-5351  08e2 88            	push	a
-5352  08e3 be09          	ldw	x,_config_value
-5353  08e5 cd029c        	call	_check_config_value
-5355  08e8 84            	pop	a
-5356  08e9 bf09          	ldw	_config_value,x
-5357                     ; 688                 menustate    = MENU_SHOW_CONFIG_VALUE;
-5359  08eb 350b0005      	mov	_menustate,#11
-5361  08ef cc0982        	jra	L7442
-5362  08f2               L1072:
-5363                     ; 689             } else if(BTN_RELEASED(BTN_S))
-5365  08f2 b609          	ld	a,__buttons
-5366  08f4 a411          	and	a,#17
-5367  08f6 a110          	cp	a,#16
-5368  08f8 2703cc097a    	jrne	L1172
-5369                     ; 691                 if(menu_item == MENU_ITEM_NO)
-5371  08fd b606          	ld	a,_menu_item
-5372  08ff a106          	cp	a,#6
-5373  0901 2668          	jrne	L3172
-5374                     ; 693                     if(config_item == rn)
-5376  0903 b607          	ld	a,_config_item
-5377  0905 a112          	cp	a,#18
-5378  0907 2662          	jrne	L3172
-5379                     ; 695                         eeprom_write_config(EEADR_MENU_ITEM(St), 0);
-5381  0909 5f            	clrw	x
-5382  090a 89            	pushw	x
-5383  090b a678          	ld	a,#120
-5384  090d cd0000        	call	_eeprom_write_config
-5386  0910 85            	popw	x
-5387                     ; 696                         if (minutes)
-5389                     	btst	_minutes
-5390  0916 2405          	jruge	L7172
-5391                     ; 697                              curr_dur = 0;
-5393  0918 5f            	clrw	x
-5394  0919 bf0b          	ldw	_curr_dur,x
-5396  091b 2008          	jra	L1272
-5397  091d               L7172:
-5398                     ; 698                         else eeprom_write_config(EEADR_MENU_ITEM(dh), 0);
-5400  091d 5f            	clrw	x
-5401  091e 89            	pushw	x
-5402  091f a679          	ld	a,#121
-5403  0921 cd0000        	call	_eeprom_write_config
-5405  0924 85            	popw	x
-5406  0925               L1272:
-5407                     ; 699                         if(config_value < THERMOSTAT_MODE)
-5409  0925 9c            	rvf
-5410  0926 be09          	ldw	x,_config_value
-5411  0928 a30006        	cpw	x,#6
-5412  092b 2e3e          	jrsge	L3172
-5413                     ; 701                             eeadr_sp = EEADR_PROFILE_SETPOINT(((uint8_t)config_value), 0);
-5415  092d b60a          	ld	a,_config_value+1
-5416  092f 97            	ld	xl,a
-5417  0930 a613          	ld	a,#19
-5418  0932 42            	mul	x,a
-5419  0933 9f            	ld	a,xl
-5420  0934 6b02          	ld	(OFST+0,sp),a
-5422                     ; 703                             if (minutes)
-5424                     	btst	_minutes
-5425  093b 2412          	jruge	L5272
-5426                     ; 705                                 setpoint = eeprom_read_config(eeadr_sp);
-5428  093d 7b02          	ld	a,(OFST+0,sp)
-5429  093f cd0000        	call	_eeprom_read_config
-5431  0942 bf06          	ldw	_setpoint,x
-5432                     ; 706                                 eeprom_write_config(EEADR_MENU_ITEM(SP), setpoint);
-5434  0944 be06          	ldw	x,_setpoint
-5435  0946 89            	pushw	x
-5436  0947 a672          	ld	a,#114
-5437  0949 cd0000        	call	_eeprom_write_config
-5439  094c 85            	popw	x
-5441  094d 200c          	jra	L7272
-5442  094f               L5272:
-5443                     ; 708                                 eeprom_write_config(EEADR_MENU_ITEM(SP), eeprom_read_config(eeadr_sp));
-5445  094f 7b02          	ld	a,(OFST+0,sp)
-5446  0951 cd0000        	call	_eeprom_read_config
-5448  0954 89            	pushw	x
-5449  0955 a672          	ld	a,#114
-5450  0957 cd0000        	call	_eeprom_write_config
-5452  095a 85            	popw	x
-5453  095b               L7272:
-5454                     ; 711                             if(eeprom_read_config(eeadr_sp+1) == 0)
-5456  095b 7b02          	ld	a,(OFST+0,sp)
-5457  095d 4c            	inc	a
-5458  095e cd0000        	call	_eeprom_read_config
-5460  0961 a30000        	cpw	x,#0
-5461  0964 2605          	jrne	L3172
-5462                     ; 713                                 config_value = THERMOSTAT_MODE;
-5464  0966 ae0006        	ldw	x,#6
-5465  0969 bf09          	ldw	_config_value,x
-5466  096b               L3172:
-5467                     ; 718                 eeprom_write_config(adr, config_value);
-5469  096b be09          	ldw	x,_config_value
-5470  096d 89            	pushw	x
-5471  096e 7b03          	ld	a,(OFST+1,sp)
-5472  0970 cd0000        	call	_eeprom_write_config
-5474  0973 85            	popw	x
-5475                     ; 719                 menustate = MENU_SHOW_CONFIG_ITEM;
-5477  0974 35090005      	mov	_menustate,#9
-5479  0978 2008          	jra	L7442
-5480  097a               L1172:
-5481                     ; 722                 key_held_tmr = TMR_KEY_ACC; 
-5483  097a 35140008      	mov	_key_held_tmr,#20
-5484  097e 2002          	jra	L7442
-5485  0980               L7042:
-5486                     ; 726        default:
-5486                     ; 727             menustate = MENU_IDLE;
-5488  0980 3f05          	clr	_menustate
-5489                     ; 728             break;
-5491  0982               L7442:
-5492                     ; 730    menu_is_idle = (menustate == MENU_IDLE); // needed for ctrl_task()
-5494  0982 3d05          	tnz	_menustate
-5495  0984 2702          	jreq	L451
-5496  0986 2006          	jp	L021
-5497  0988               L451:
-5498  0988 72100000      	bset	_menu_is_idle
-5499  098c 2004          	jra	L221
-5500  098e               L021:
-5501  098e 72110000      	bres	_menu_is_idle
-5502  0992               L221:
-5503                     ; 731 } // button_menu_fsm()
-5506  0992 85            	popw	x
-5507  0993 81            	ret
-5698                     ; 738 uint16_t min_to_sec(enum menu_enum x)
-5698                     ; 739 {
-5699                     	switch	.text
-5700  0994               _min_to_sec:
-5702  0994 89            	pushw	x
-5703       00000002      OFST:	set	2
-5706                     ; 742     retv = eeprom_read_config(EEADR_MENU_ITEM(x)) << 6; // * 64
-5708  0995 ab72          	add	a,#114
-5709  0997 cd0000        	call	_eeprom_read_config
-5711  099a 58            	sllw	x
-5712  099b 58            	sllw	x
-5713  099c 58            	sllw	x
-5714  099d 58            	sllw	x
-5715  099e 58            	sllw	x
-5716  099f 58            	sllw	x
-5717  09a0 1f01          	ldw	(OFST-1,sp),x
-5719                     ; 743     retv = retv - (retv >> 4); // 64 - 4 = 60
-5721  09a2 1e01          	ldw	x,(OFST-1,sp)
-5722  09a4 54            	srlw	x
-5723  09a5 54            	srlw	x
-5724  09a6 54            	srlw	x
-5725  09a7 54            	srlw	x
-5726  09a8 72f001        	subw	x,(OFST-1,sp)
-5727  09ab 50            	negw	x
-5728  09ac 1f01          	ldw	(OFST-1,sp),x
-5730                     ; 744     return retv;
-5732  09ae 1e01          	ldw	x,(OFST-1,sp)
-5735  09b0 5b02          	addw	sp,#2
-5736  09b2 81            	ret
-5766                     ; 752 void init_temp_delays(void)
-5766                     ; 753 {
-5767                     	switch	.text
-5768  09b3               _init_temp_delays:
-5772                     ; 754     if (!minutes) setpoint = eeprom_read_config(EEADR_MENU_ITEM(SP));
-5774                     	btst	_minutes
-5775  09b8 2507          	jrult	L3403
-5778  09ba a672          	ld	a,#114
-5779  09bc cd0000        	call	_eeprom_read_config
-5781  09bf bf06          	ldw	_setpoint,x
-5782  09c1               L3403:
-5783                     ; 755     hysteresis  = eeprom_read_config(EEADR_MENU_ITEM(hy));
-5785  09c1 a673          	ld	a,#115
-5786  09c3 cd0000        	call	_eeprom_read_config
-5788  09c6 bf04          	ldw	_hysteresis,x
-5789                     ; 756     hysteresis2 = eeprom_read_config(EEADR_MENU_ITEM(hy2));
-5791  09c8 a674          	ld	a,#116
-5792  09ca cd0000        	call	_eeprom_read_config
-5794  09cd bf02          	ldw	_hysteresis2,x
-5795                     ; 758     if (cooling_delay) cooling_delay--;
-5797  09cf be01          	ldw	x,_cooling_delay
-5798  09d1 2707          	jreq	L5403
-5801  09d3 be01          	ldw	x,_cooling_delay
-5802  09d5 1d0001        	subw	x,#1
-5803  09d8 bf01          	ldw	_cooling_delay,x
-5804  09da               L5403:
-5805                     ; 759     if (heating_delay) heating_delay--;
-5807  09da be03          	ldw	x,_heating_delay
-5808  09dc 2707          	jreq	L7403
-5811  09de be03          	ldw	x,_heating_delay
-5812  09e0 1d0001        	subw	x,#1
-5813  09e3 bf03          	ldw	_heating_delay,x
-5814  09e5               L7403:
-5815                     ; 760 } // init_temp_delays()
-5818  09e5 81            	ret
-5844                     ; 767 void enable_cooling(void)
-5844                     ; 768 {
-5845                     	switch	.text
-5846  09e6               _enable_cooling:
-5850                     ; 769      if (cooling_delay) 
-5852  09e6 be01          	ldw	x,_cooling_delay
-5853  09e8 2706          	jreq	L1603
-5854                     ; 770          led_e ^= LED_COOL; // Flash to indicate cooling delay
-5856  09ea 90140000      	bcpl	_led_e,#2
-5858  09ee 2008          	jra	L3603
-5859  09f0               L1603:
-5860                     ; 773          COOL_ON; // Enable Cooling
-5862  09f0 72145000      	bset	_PA_ODR,#2
-5863                     ; 774          led_e |= LED_COOL;
-5865  09f4 72140000      	bset	_led_e,#2
-5866  09f8               L3603:
-5867                     ; 776 } // enable_cooling()
-5870  09f8 81            	ret
-5896                     ; 783 void enable_heating(void)
-5896                     ; 784 {
-5897                     	switch	.text
-5898  09f9               _enable_heating:
-5902                     ; 785      if (heating_delay) 
-5904  09f9 be03          	ldw	x,_heating_delay
-5905  09fb 2706          	jreq	L5703
-5906                     ; 786          led_e ^= LED_HEAT; // Flash to indicate heating delay
-5908  09fd 90100000      	bcpl	_led_e,#0
-5910  0a01 2008          	jra	L7703
-5911  0a03               L5703:
-5912                     ; 789          HEAT_ON; // Enable Cooling
-5914  0a03 72125000      	bset	_PA_ODR,#1
-5915                     ; 790          led_e |= LED_HEAT;
-5917  0a07 72100000      	bset	_led_e,#0
-5918  0a0b               L7703:
-5919                     ; 792 } // enable_heating()
-5922  0a0b 81            	ret
-5962                     ; 800 void temperature_control(void)
-5962                     ; 801 {
-5963                     	switch	.text
-5964  0a0c               _temperature_control:
-5968                     ; 802     init_temp_delays(); // Initialise Heating and Cooling delay
-5970  0a0c ada5          	call	_init_temp_delays
-5972                     ; 805     if (!pwr_on ||
-5972                     ; 806        (COOL_STATUS && (temp_ntc1 <= setpoint || (probe2 && (temp_ntc2 < (setpoint - hysteresis2))))) || 
-5972                     ; 807        (HEAT_STATUS && (temp_ntc1 >= setpoint || (probe2 && (temp_ntc2 > (setpoint + hysteresis2))))))
-5974                     	btst	_pwr_on
-5975  0a13 2444          	jruge	L3113
-5977  0a15 c65001        	ld	a,_PA_IDR
-5978  0a18 a404          	and	a,#4
-5979  0a1a a104          	cp	a,#4
-5980  0a1c 2619          	jrne	L7113
-5982  0a1e 9c            	rvf
-5983  0a1f be00          	ldw	x,_temp_ntc1
-5984  0a21 b306          	cpw	x,_setpoint
-5985  0a23 2d34          	jrsle	L3113
-5987                     	btst	_probe2
-5988  0a2a 240b          	jruge	L7113
-5990  0a2c 9c            	rvf
-5991  0a2d be06          	ldw	x,_setpoint
-5992  0a2f 72b00002      	subw	x,_hysteresis2
-5993  0a33 b300          	cpw	x,_temp_ntc2
-5994  0a35 2c22          	jrsgt	L3113
-5995  0a37               L7113:
-5997  0a37 c65001        	ld	a,_PA_IDR
-5998  0a3a a402          	and	a,#2
-5999  0a3c a102          	cp	a,#2
-6000  0a3e 2636          	jrne	L1113
-6002  0a40 9c            	rvf
-6003  0a41 be00          	ldw	x,_temp_ntc1
-6004  0a43 b306          	cpw	x,_setpoint
-6005  0a45 2e12          	jrsge	L3113
-6007                     	btst	_probe2
-6008  0a4c 2428          	jruge	L1113
-6010  0a4e 9c            	rvf
-6011  0a4f be06          	ldw	x,_setpoint
-6012  0a51 72bb0002      	addw	x,_hysteresis2
-6013  0a55 b300          	cpw	x,_temp_ntc2
-6014  0a57 2e1d          	jrsge	L1113
-6015  0a59               L3113:
-6016                     ; 809         cooling_delay = min_to_sec(cd);
-6018  0a59 a608          	ld	a,#8
-6019  0a5b cd0994        	call	_min_to_sec
-6021  0a5e bf01          	ldw	_cooling_delay,x
-6022                     ; 810         heating_delay = min_to_sec(hd);
-6024  0a60 a609          	ld	a,#9
-6025  0a62 cd0994        	call	_min_to_sec
-6027  0a65 bf03          	ldw	_heating_delay,x
-6028                     ; 811 	RELAYS_OFF; // Disable Cooling and Heating relays
-6030  0a67 c65000        	ld	a,_PA_ODR
-6031  0a6a a4f9          	and	a,#249
-6032  0a6c c75000        	ld	_PA_ODR,a
-6033                     ; 812         led_e &= ~(LED_HEAT | LED_COOL); // disable both LEDs
-6035  0a6f b600          	ld	a,_led_e
-6036  0a71 a4fa          	and	a,#250
-6037  0a73 b700          	ld	_led_e,a
-6039  0a75               L5213:
-6040                     ; 824 } // temperature_control()
-6043  0a75 81            	ret
-6044  0a76               L1113:
-6045                     ; 814     else if (!HEAT_STATUS && !COOL_STATUS) 
-6047  0a76 c65001        	ld	a,_PA_IDR
-6048  0a79 a402          	and	a,#2
-6049  0a7b a102          	cp	a,#2
-6050  0a7d 27f6          	jreq	L5213
-6052  0a7f c65001        	ld	a,_PA_IDR
-6053  0a82 a404          	and	a,#4
-6054  0a84 a104          	cp	a,#4
-6055  0a86 27ed          	jreq	L5213
-6056                     ; 816 	hysteresis2 >>= 2; // Divide hysteresis2 by 2
-6058  0a88 a602          	ld	a,#2
-6059  0a8a               L071:
-6060  0a8a 3702          	sra	_hysteresis2
-6061  0a8c 3603          	rrc	_hysteresis2+1
-6062  0a8e 4a            	dec	a
-6063  0a8f 26f9          	jrne	L071
-6064                     ; 817 	if ((temp_ntc1 > setpoint + hysteresis) && (!probe2 || (temp_ntc2 >= setpoint - hysteresis2))) 
-6066  0a91 9c            	rvf
-6067  0a92 be06          	ldw	x,_setpoint
-6068  0a94 72bb0004      	addw	x,_hysteresis
-6069  0a98 b300          	cpw	x,_temp_ntc1
-6070  0a9a 2e17          	jrsge	L1313
-6072                     	btst	_probe2
-6073  0aa1 240b          	jruge	L3313
-6075  0aa3 9c            	rvf
-6076  0aa4 be06          	ldw	x,_setpoint
-6077  0aa6 72b00002      	subw	x,_hysteresis2
-6078  0aaa b300          	cpw	x,_temp_ntc2
-6079  0aac 2c05          	jrsgt	L1313
-6080  0aae               L3313:
-6081                     ; 818              enable_cooling(); // switch cooling relay
-6083  0aae cd09e6        	call	_enable_cooling
-6086  0ab1 2004          	jra	L5313
-6087  0ab3               L1313:
-6088                     ; 819         else led_e &= ~LED_COOL;
-6090  0ab3 72150000      	bres	_led_e,#2
-6091  0ab7               L5313:
-6092                     ; 820 	if ((temp_ntc1 < setpoint - hysteresis) && (probe2 || (temp_ntc2 <= setpoint + hysteresis2))) 
-6094  0ab7 9c            	rvf
-6095  0ab8 be06          	ldw	x,_setpoint
-6096  0aba 72b00004      	subw	x,_hysteresis
-6097  0abe b300          	cpw	x,_temp_ntc1
-6098  0ac0 2d17          	jrsle	L7313
-6100                     	btst	_probe2
-6101  0ac7 250b          	jrult	L1413
-6103  0ac9 9c            	rvf
-6104  0aca be06          	ldw	x,_setpoint
-6105  0acc 72bb0002      	addw	x,_hysteresis2
-6106  0ad0 b300          	cpw	x,_temp_ntc2
-6107  0ad2 2f05          	jrslt	L7313
-6108  0ad4               L1413:
-6109                     ; 821 	    enable_heating(); // switch heating relay
-6111  0ad4 cd09f9        	call	_enable_heating
-6114  0ad7 209c          	jra	L5213
-6115  0ad9               L7313:
-6116                     ; 822 	else led_e &= ~LED_HEAT;
-6118  0ad9 72110000      	bres	_led_e,#0
-6119  0add 2096          	jra	L5213
-6122                     	bsct
-6123  000f               L5413_pid_tmr:
-6124  000f 00            	dc.b	0
-6125                     	xref	_init_pid
-6126                     	xref	_pid_ctrl
-6169                     ; 833 void pid_control(void)
-6169                     ; 834 {
-6170                     	switch	.text
-6171  0adf               _pid_control:
-6175                     ; 837     init_temp_delays(); // Initialise Heating and Cooling delay
-6177  0adf cd09b3        	call	_init_temp_delays
-6179                     ; 839     if (kc != eeprom_read_config(EEADR_MENU_ITEM(Hc)) ||
-6179                     ; 840         ti != eeprom_read_config(EEADR_MENU_ITEM(Ti)) ||
-6179                     ; 841         td != eeprom_read_config(EEADR_MENU_ITEM(Td)))
-6181  0ae2 a680          	ld	a,#128
-6182  0ae4 cd0000        	call	_eeprom_read_config
-6184  0ae7 b300          	cpw	x,_kc
-6185  0ae9 2612          	jrne	L7613
-6187  0aeb a681          	ld	a,#129
-6188  0aed cd0000        	call	_eeprom_read_config
-6190  0af0 b300          	cpw	x,_ti
-6191  0af2 2609          	jrne	L7613
-6193  0af4 a682          	ld	a,#130
-6194  0af6 cd0000        	call	_eeprom_read_config
-6196  0af9 b300          	cpw	x,_td
-6197  0afb 2728          	jreq	L5613
-6198  0afd               L7613:
-6199                     ; 843        kc = eeprom_read_config(EEADR_MENU_ITEM(Hc));
-6201  0afd a680          	ld	a,#128
-6202  0aff cd0000        	call	_eeprom_read_config
-6204  0b02 bf00          	ldw	_kc,x
-6205                     ; 844        ti = eeprom_read_config(EEADR_MENU_ITEM(Ti));
-6207  0b04 a681          	ld	a,#129
-6208  0b06 cd0000        	call	_eeprom_read_config
-6210  0b09 bf00          	ldw	_ti,x
-6211                     ; 845        td = eeprom_read_config(EEADR_MENU_ITEM(Td));
-6213  0b0b a682          	ld	a,#130
-6214  0b0d cd0000        	call	_eeprom_read_config
-6216  0b10 bf00          	ldw	_td,x
-6217                     ; 846        init_pid(kc,ti,td,ts,temp_ntc1); // Init PID controller
-6219  0b12 be00          	ldw	x,_temp_ntc1
-6220  0b14 89            	pushw	x
-6221  0b15 3b0000        	push	_ts
-6222  0b18 be00          	ldw	x,_td
-6223  0b1a 89            	pushw	x
-6224  0b1b be00          	ldw	x,_ti
-6225  0b1d 89            	pushw	x
-6226  0b1e be00          	ldw	x,_kc
-6227  0b20 cd0000        	call	_init_pid
-6229  0b23 5b07          	addw	sp,#7
-6230  0b25               L5613:
-6231                     ; 849     if (++pid_tmr >= ts) 
-6233  0b25 3c0f          	inc	L5413_pid_tmr
-6234  0b27 b60f          	ld	a,L5413_pid_tmr
-6235  0b29 b100          	cp	a,_ts
-6236  0b2b 250e          	jrult	L3713
-6237                     ; 851         pid_ctrl(temp_ntc1,&pid_out,setpoint);
-6239  0b2d be06          	ldw	x,_setpoint
-6240  0b2f 89            	pushw	x
-6241  0b30 4b0d          	push	#_pid_out
-6242  0b32 be00          	ldw	x,_temp_ntc1
-6243  0b34 cd0000        	call	_pid_ctrl
-6245  0b37 5b03          	addw	sp,#3
-6246                     ; 852         pid_tmr = 0;
-6248  0b39 3f0f          	clr	L5413_pid_tmr
-6249  0b3b               L3713:
-6250                     ; 877 } // pid_control()
-6253  0b3b 81            	ret
-6564                     	xdef	_enable_heating
-6565                     	xdef	_enable_cooling
-6566                     	xdef	_init_temp_delays
-6567                     	xdef	_min_to_sec
-6568                     	xdef	_menu
-6569                     	xref.b	_top_01
-6570                     	xref.b	_top_1
-6571                     	xref.b	_top_10
-6572                     	xref.b	_top_100
-6573                     	xref.b	_hc164_val
-6574                     	xref.b	_ts
-6575                     	xref.b	_td
-6576                     	xref.b	_ti
-6577                     	xref.b	_kc
-6578                     	xref.b	_temp_ntc2
-6579                     	xref.b	_temp_ntc1
-6580                     	xbit	_probe2
-6581                     	switch	.ubsct
-6582  0000               _portd:
-6583  0000 00            	ds.b	1
-6584                     	xdef	_portd
-6585  0001               _portc:
-6586  0001 00            	ds.b	1
-6587                     	xdef	_portc
-6588  0002               _hysteresis2:
-6589  0002 0000          	ds.b	2
-6590                     	xdef	_hysteresis2
-6591  0004               _hysteresis:
-6592  0004 0000          	ds.b	2
-6593                     	xdef	_hysteresis
-6594                     	xdef	_pid_out
-6595                     	xdef	_curr_dur
-6596  0006               _setpoint:
-6597  0006 0000          	ds.b	2
-6598                     	xdef	_setpoint
-6599                     	xdef	_sensor2_selected
-6600  0008               _key_held_tmr:
-6601  0008 00            	ds.b	1
-6602                     	xdef	_key_held_tmr
-6603  0009               _config_value:
-6604  0009 0000          	ds.b	2
-6605                     	xdef	_config_value
-6606                     	xdef	__buttons
-6607                     	xdef	_m_countdown
-6608                     	xdef	_config_item
-6609                     	xdef	_menu_item
-6610                     	xdef	_minutes
-6611                     	xdef	_fahrenheit
-6612                     	xdef	_pwr_on
-6613                     	xdef	_menu_is_idle
-6614                     	xdef	_menustate
-6615                     	xdef	_heating_delay
-6616                     	xdef	_cooling_delay
-6617  000b               _led_01:
-6618  000b 00            	ds.b	1
-6619                     	xdef	_led_01
-6620  000c               _led_1:
-6621  000c 00            	ds.b	1
-6622                     	xdef	_led_1
-6623  000d               _led_10:
-6624  000d 00            	ds.b	1
-6625                     	xdef	_led_10
-6626                     	xdef	_led_e
-6627                     	xdef	_eedata
-6628                     	xdef	_led_lookup
-6629                     	xdef	_pid_control
-6630                     	xdef	_temperature_control
-6631                     	xdef	_menu_fsm
-6632                     	xdef	_read_buttons
-6633                     	xdef	_check_config_value
-6634                     	xdef	_range
-6635                     	xdef	_update_profile
-6636                     	xdef	_value_to_led
-6637                     	xdef	_prx_to_led
-6638                     	xdef	_divu10
-6639                     	xref	_eeprom_write_config
-6640                     	xref	_eeprom_read_config
-6641                     	xref	_set_hc164
-6642                     	xref.b	c_x
-6662                     	xref	c_lgrsh
-6663                     	xref	c_lgadd
-6664                     	xref	c_itolx
-6665                     	end
+4202  03fd a4fd          	and	a,#253
+4203  03ff b701          	ld	_portd,a
+4204                     ; 391     PE_ODR |= SEG7_C;             // disable 7-segment display C
+4206  0401 72105014      	bset	_PE_ODR,#0
+4207                     ; 392     PD_ODR |= PORTD_OUT;          // disable all other 7-segment displays
+4209  0405 c6500f        	ld	a,_PD_ODR
+4210  0408 aafd          	or	a,#253
+4211  040a c7500f        	ld	_PD_ODR,a
+4212                     ; 393     hc164_state = hc164_val;      // save current hc164_val
+4214  040d b600          	ld	a,_hc164_val
+4215  040f 6b01          	ld	(OFST-1,sp),a
+4217                     ; 394     set_hc164(0x00);
+4219  0411 4f            	clr	a
+4220  0412 cd0000        	call	_set_hc164
+4222                     ; 396     for (i = 0x88; i > 0x0F; i >>= 1)
+4224  0415 a688          	ld	a,#136
+4225  0417 6b02          	ld	(OFST+0,sp),a
+4227  0419               L1332:
+4228                     ; 398        set_hc164(i);
+4230  0419 7b02          	ld	a,(OFST+0,sp)
+4231  041b cd0000        	call	_set_hc164
+4233                     ; 399        _buttons <<= 1;
+4235  041e 3809          	sll	__buttons
+4236                     ; 400        _buttons  &= 0xFE; // clear bit 0
+4238  0420 72110009      	bres	__buttons,#0
+4239                     ; 401        if (PC_IDR & KEYS) _buttons |= 0x01;
+4241  0424 c6500b        	ld	a,_PC_IDR
+4242  0427 a502          	bcp	a,#2
+4243  0429 2704          	jreq	L7332
+4246  042b 72100009      	bset	__buttons,#0
+4247  042f               L7332:
+4248                     ; 402        set_hc164(0x00);
+4250  042f 4f            	clr	a
+4251  0430 cd0000        	call	_set_hc164
+4253                     ; 396     for (i = 0x88; i > 0x0F; i >>= 1)
+4255  0433 0402          	srl	(OFST+0,sp)
+4259  0435 7b02          	ld	a,(OFST+0,sp)
+4260  0437 a110          	cp	a,#16
+4261  0439 24de          	jruge	L1332
+4262                     ; 404     top_100 = top_10 = top_1 = top_01 = LED_0;
+4264  043b 35e70000      	mov	_top_01,#231
+4265  043f 450000        	mov	_top_1,_top_01
+4266  0442 450000        	mov	_top_10,_top_1
+4267  0445 450000        	mov	_top_100,_top_10
+4268                     ; 405     if (_buttons & 0x08) top_100 = LED_S;
+4270  0448 b609          	ld	a,__buttons
+4271  044a a508          	bcp	a,#8
+4272  044c 2704          	jreq	L1432
+4275  044e 35b50000      	mov	_top_100,#181
+4276  0452               L1432:
+4277                     ; 406     if (_buttons & 0x04) top_10  = LED_L;
+4279  0452 b609          	ld	a,__buttons
+4280  0454 a504          	bcp	a,#4
+4281  0456 2704          	jreq	L3432
+4284  0458 35e00000      	mov	_top_10,#224
+4285  045c               L3432:
+4286                     ; 407     if (_buttons & 0x02) top_1   = LED_d;
+4288  045c b609          	ld	a,__buttons
+4289  045e a502          	bcp	a,#2
+4290  0460 2704          	jreq	L5432
+4293  0462 35d30000      	mov	_top_1,#211
+4294  0466               L5432:
+4295                     ; 408     if (_buttons & 0x01) top_01  = LED_u;
+4297  0466 b609          	ld	a,__buttons
+4298  0468 a501          	bcp	a,#1
+4299  046a 2704          	jreq	L7432
+4302  046c 35c10000      	mov	_top_01,#193
+4303  0470               L7432:
+4304                     ; 411     set_hc164(hc164_state); // restore HC164 state
+4306  0470 7b01          	ld	a,(OFST-1,sp)
+4307  0472 cd0000        	call	_set_hc164
+4309                     ; 412     PD_ODR &= ~PORTD_OUT;
+4311  0475 c6500f        	ld	a,_PD_ODR
+4312  0478 a402          	and	a,#2
+4313  047a c7500f        	ld	_PD_ODR,a
+4314                     ; 413     PD_ODR |= portd;        // restore PORTD
+4316  047d c6500f        	ld	a,_PD_ODR
+4317  0480 ba01          	or	a,_portd
+4318  0482 c7500f        	ld	_PD_ODR,a
+4319                     ; 414     PE_ODR &= ~SEG7_C;
+4321  0485 72115014      	bres	_PE_ODR,#0
+4322                     ; 415     PE_ODR |= porte;        // restore PORTE
+4324  0489 c65014        	ld	a,_PE_ODR
+4325  048c ba00          	or	a,_porte
+4326  048e c75014        	ld	_PE_ODR,a
+4327                     ; 416     enable_interrupts();    // Re-enable Interrupts
+4330  0491 9a            rim
+4332                     ; 417 } // read_buttons()
+4336  0492 85            	popw	x
+4337  0493 81            	ret
+4425                     	switch	.const
+4426  0056               L611:
+4427  0056 04ac          	dc.w	L1532
+4428  0058 058c          	dc.w	L5532
+4429  005a 05b4          	dc.w	L7532
+4430  005c 05e1          	dc.w	L1632
+4431  005e 0614          	dc.w	L3632
+4432  0060 063c          	dc.w	L5632
+4433  0062 051b          	dc.w	L3532
+4434  0064 0675          	dc.w	L7632
+4435  0066 068a          	dc.w	L1732
+4436  0068 06e7          	dc.w	L3732
+4437  006a 0744          	dc.w	L5732
+4438  006c 0813          	dc.w	L1042
+4439  006e 086b          	dc.w	L3042
+4440                     ; 426 void menu_fsm(void)
+4440                     ; 427 {
+4441                     	switch	.text
+4442  0494               _menu_fsm:
+4444  0494 89            	pushw	x
+4445       00000002      OFST:	set	2
+4448                     ; 430    if (m_countdown) m_countdown--; // countdown counter
+4450  0495 3d08          	tnz	_m_countdown
+4451  0497 2702          	jreq	L3442
+4454  0499 3a08          	dec	_m_countdown
+4455  049b               L3442:
+4456                     ; 432    switch (menustate)
+4458  049b b605          	ld	a,_menustate
+4460                     ; 728             break;
+4461  049d a10d          	cp	a,#13
+4462  049f 2407          	jruge	L411
+4463  04a1 5f            	clrw	x
+4464  04a2 97            	ld	xl,a
+4465  04a3 58            	sllw	x
+4466  04a4 de0056        	ldw	x,(L611,x)
+4467  04a7 fc            	jp	(x)
+4468  04a8               L411:
+4469  04a8 ac780978      	jpf	L7042
+4470  04ac               L1532:
+4471                     ; 435        case MENU_IDLE:
+4471                     ; 436 	    if(BTN_PRESSED(BTN_PWR))
+4473  04ac b609          	ld	a,__buttons
+4474  04ae a422          	and	a,#34
+4475  04b0 a102          	cp	a,#2
+4476  04b2 260c          	jrne	L1542
+4477                     ; 438                 m_countdown = TMR_POWERDOWN;
+4479  04b4 351e0008      	mov	_m_countdown,#30
+4480                     ; 439                 menustate   = MENU_POWER_DOWN_WAIT;
+4482  04b8 35060005      	mov	_menustate,#6
+4484  04bc ac7a097a      	jpf	L7442
+4485  04c0               L1542:
+4486                     ; 440 	    } else if(_buttons && eeprom_read_config(EEADR_POWER_ON))
+4488  04c0 3d09          	tnz	__buttons
+4489  04c2 2603          	jrne	L421
+4490  04c4 cc097a        	jp	L7442
+4491  04c7               L421:
+4493  04c7 a685          	ld	a,#133
+4494  04c9 cd0000        	call	_eeprom_read_config
+4496  04cc a30000        	cpw	x,#0
+4497  04cf 2603          	jrne	L621
+4498  04d1 cc097a        	jp	L7442
+4499  04d4               L621:
+4500                     ; 442                 if (BTN_PRESSED(BTN_UP | BTN_DOWN)) 
+4502  04d4 b609          	ld	a,__buttons
+4503  04d6 a4cc          	and	a,#204
+4504  04d8 a10c          	cp	a,#12
+4505  04da 2608          	jrne	L7542
+4506                     ; 444                     menustate = MENU_SHOW_VERSION;
+4508  04dc 35010005      	mov	_menustate,#1
+4510  04e0 ac7a097a      	jpf	L7442
+4511  04e4               L7542:
+4512                     ; 445                 } else if(BTN_PRESSED(BTN_UP))
+4514  04e4 b609          	ld	a,__buttons
+4515  04e6 a488          	and	a,#136
+4516  04e8 a108          	cp	a,#8
+4517  04ea 2608          	jrne	L3642
+4518                     ; 447                     menustate = MENU_SHOW_STATE_UP;
+4520  04ec 35020005      	mov	_menustate,#2
+4522  04f0 ac7a097a      	jpf	L7442
+4523  04f4               L3642:
+4524                     ; 448                 } else if(BTN_PRESSED(BTN_DOWN))
+4526  04f4 b609          	ld	a,__buttons
+4527  04f6 a444          	and	a,#68
+4528  04f8 a104          	cp	a,#4
+4529  04fa 260c          	jrne	L7642
+4530                     ; 450                     m_countdown = TMR_SHOW_PROFILE_ITEM;
+4532  04fc 350f0008      	mov	_m_countdown,#15
+4533                     ; 451                     menustate   = MENU_SHOW_STATE_DOWN;
+4535  0500 35030005      	mov	_menustate,#3
+4537  0504 ac7a097a      	jpf	L7442
+4538  0508               L7642:
+4539                     ; 452                 } else if(BTN_RELEASED(BTN_S))
+4541  0508 b609          	ld	a,__buttons
+4542  050a a411          	and	a,#17
+4543  050c a110          	cp	a,#16
+4544  050e 2703          	jreq	L031
+4545  0510 cc097a        	jp	L7442
+4546  0513               L031:
+4547                     ; 454                     menustate = MENU_SHOW_MENU_ITEM;
+4549  0513 35070005      	mov	_menustate,#7
+4550  0517 ac7a097a      	jpf	L7442
+4551  051b               L3532:
+4552                     ; 459        case MENU_POWER_DOWN_WAIT:
+4552                     ; 460             if (m_countdown == 0)
+4554  051b 3d08          	tnz	_m_countdown
+4555  051d 263f          	jrne	L5742
+4556                     ; 462                 pwr_on = eeprom_read_config(EEADR_POWER_ON);
+4558  051f a685          	ld	a,#133
+4559  0521 cd0000        	call	_eeprom_read_config
+4561  0524 a30000        	cpw	x,#0
+4562  0527 2602          	jrne	L231
+4563  0529 2006          	jp	L001
+4564  052b               L231:
+4565  052b 72100001      	bset	_pwr_on
+4566  052f 2004          	jra	L201
+4567  0531               L001:
+4568  0531 72110001      	bres	_pwr_on
+4569  0535               L201:
+4570                     ; 463                 pwr_on = !pwr_on;
+4572  0535 90100001      	bcpl	_pwr_on
+4573                     ; 464                 eeprom_write_config(EEADR_POWER_ON, pwr_on);
+4575  0539 5f            	clrw	x
+4576                     	btst	_pwr_on
+4577  053f 59            	rlcw	x
+4578  0540 89            	pushw	x
+4579  0541 a685          	ld	a,#133
+4580  0543 cd0000        	call	_eeprom_write_config
+4582  0546 85            	popw	x
+4583                     ; 465                 if (pwr_on)
+4585                     	btst	_pwr_on
+4586  054c 240a          	jruge	L7742
+4587                     ; 467                     heating_delay = 60; // 60 sec.
+4589  054e ae003c        	ldw	x,#60
+4590  0551 bf03          	ldw	_heating_delay,x
+4591                     ; 468                     cooling_delay = 60; // 60 sec.
+4593  0553 ae003c        	ldw	x,#60
+4594  0556 bf01          	ldw	_cooling_delay,x
+4595  0558               L7742:
+4596                     ; 470                 menustate = MENU_IDLE;
+4598  0558 3f05          	clr	_menustate
+4600  055a ac7a097a      	jpf	L7442
+4601  055e               L5742:
+4602                     ; 471             } else if(!BTN_HELD(BTN_PWR))
+4604  055e b609          	ld	a,__buttons
+4605  0560 a422          	and	a,#34
+4606  0562 a122          	cp	a,#34
+4607  0564 2603          	jrne	L431
+4608  0566 cc097a        	jp	L7442
+4609  0569               L431:
+4610                     ; 473                 if (++sensor2_selected > 1 + (ts > 0)) sensor2_selected = 0;
+4612  0569 9c            	rvf
+4613  056a 3d00          	tnz	_ts
+4614  056c 2705          	jreq	L401
+4615  056e ae0001        	ldw	x,#1
+4616  0571 2001          	jra	L601
+4617  0573               L401:
+4618  0573 5f            	clrw	x
+4619  0574               L601:
+4620  0574 5c            	incw	x
+4621  0575 3c0a          	inc	_sensor2_selected
+4622  0577 b60a          	ld	a,_sensor2_selected
+4623  0579 905f          	clrw	y
+4624  057b 9097          	ld	yl,a
+4625  057d bf00          	ldw	c_x,x
+4626  057f 90b300        	cpw	y,c_x
+4627  0582 2d02          	jrsle	L5052
+4630  0584 3f0a          	clr	_sensor2_selected
+4631  0586               L5052:
+4632                     ; 474                 menustate = MENU_IDLE;
+4634  0586 3f05          	clr	_menustate
+4635  0588 ac7a097a      	jpf	L7442
+4636  058c               L5532:
+4637                     ; 478        case MENU_SHOW_VERSION: // Show STC1000p version number
+4637                     ; 479             value_to_led(STC1000P_VERSION,LEDS_INT);
+4639  058c 4b00          	push	#0
+4640  058e ae00c8        	ldw	x,#200
+4641  0591 cd009f        	call	_value_to_led
+4643  0594 84            	pop	a
+4644                     ; 480 	    led_10 |= LED_DECIMAL;
+4646  0595 7216000d      	bset	_led_10,#3
+4647                     ; 481             led_1  |= LED_DECIMAL;
+4649  0599 7216000c      	bset	_led_1,#3
+4650                     ; 482 	    led_e  &= ~(LED_DEGR | LED_CELS); // clear ° and Celsius symbols
+4652  059d b600          	ld	a,_led_e
+4653  059f a49f          	and	a,#159
+4654  05a1 b700          	ld	_led_e,a
+4655                     ; 483 	    if(!BTN_HELD(BTN_UP | BTN_DOWN)) menustate = MENU_IDLE;
+4657  05a3 b609          	ld	a,__buttons
+4658  05a5 a4cc          	and	a,#204
+4659  05a7 a1cc          	cp	a,#204
+4660  05a9 2603          	jrne	L631
+4661  05ab cc097a        	jp	L7442
+4662  05ae               L631:
+4665  05ae 3f05          	clr	_menustate
+4666  05b0 ac7a097a      	jpf	L7442
+4667  05b4               L7532:
+4668                     ; 486        case MENU_SHOW_STATE_UP: // Show setpoint value
+4668                     ; 487 	    if (minutes) // is timing-control in minutes?
+4670                     	btst	_minutes
+4671  05b9 240a          	jruge	L1152
+4672                     ; 488                  value_to_led(setpoint,LEDS_TEMP);
+4674  05bb 4b01          	push	#1
+4675  05bd be06          	ldw	x,_setpoint
+4676  05bf cd009f        	call	_value_to_led
+4678  05c2 84            	pop	a
+4680  05c3 200b          	jra	L3152
+4681  05c5               L1152:
+4682                     ; 489 	    else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(SP)),LEDS_TEMP);
+4684  05c5 4b01          	push	#1
+4685  05c7 a672          	ld	a,#114
+4686  05c9 cd0000        	call	_eeprom_read_config
+4688  05cc cd009f        	call	_value_to_led
+4690  05cf 84            	pop	a
+4691  05d0               L3152:
+4692                     ; 490 	    if(!BTN_HELD(BTN_UP)) menustate = MENU_IDLE;
+4694  05d0 b609          	ld	a,__buttons
+4695  05d2 a488          	and	a,#136
+4696  05d4 a188          	cp	a,#136
+4697  05d6 2603          	jrne	L041
+4698  05d8 cc097a        	jp	L7442
+4699  05db               L041:
+4702  05db 3f05          	clr	_menustate
+4703  05dd ac7a097a      	jpf	L7442
+4704  05e1               L1632:
+4705                     ; 493        case MENU_SHOW_STATE_DOWN: // Show Profile-number
+4705                     ; 494 	    run_mode = eeprom_read_config(EEADR_MENU_ITEM(rn));
+4707  05e1 a684          	ld	a,#132
+4708  05e3 cd0000        	call	_eeprom_read_config
+4710  05e6 01            	rrwa	x,a
+4711  05e7 6b02          	ld	(OFST+0,sp),a
+4712  05e9 02            	rlwa	x,a
+4714                     ; 495             prx_to_led(run_mode,LEDS_RUN_MODE);
+4716  05ea 7b02          	ld	a,(OFST+0,sp)
+4717  05ec 5f            	clrw	x
+4718  05ed 95            	ld	xh,a
+4719  05ee cd0051        	call	_prx_to_led
+4721                     ; 496             if ((run_mode < THERMOSTAT_MODE) && (m_countdown == 0))
+4723  05f1 7b02          	ld	a,(OFST+0,sp)
+4724  05f3 a106          	cp	a,#6
+4725  05f5 240c          	jruge	L7152
+4727  05f7 3d08          	tnz	_m_countdown
+4728  05f9 2608          	jrne	L7152
+4729                     ; 498                 m_countdown = TMR_SHOW_PROFILE_ITEM;
+4731  05fb 350f0008      	mov	_m_countdown,#15
+4732                     ; 499                 menustate   = MENU_SHOW_STATE_DOWN_2;
+4734  05ff 35040005      	mov	_menustate,#4
+4735  0603               L7152:
+4736                     ; 501 	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
+4738  0603 b609          	ld	a,__buttons
+4739  0605 a444          	and	a,#68
+4740  0607 a144          	cp	a,#68
+4741  0609 2603          	jrne	L241
+4742  060b cc097a        	jp	L7442
+4743  060e               L241:
+4746  060e 3f05          	clr	_menustate
+4747  0610 ac7a097a      	jpf	L7442
+4748  0614               L3632:
+4749                     ; 504        case MENU_SHOW_STATE_DOWN_2: // Show current step number within profile
+4749                     ; 505 	    value_to_led(eeprom_read_config(EEADR_MENU_ITEM(St)),LEDS_INT);
+4751  0614 4b00          	push	#0
+4752  0616 a678          	ld	a,#120
+4753  0618 cd0000        	call	_eeprom_read_config
+4755  061b cd009f        	call	_value_to_led
+4757  061e 84            	pop	a
+4758                     ; 506 	    if(m_countdown == 0)
+4760  061f 3d08          	tnz	_m_countdown
+4761  0621 2608          	jrne	L3252
+4762                     ; 508                 m_countdown = TMR_SHOW_PROFILE_ITEM;
+4764  0623 350f0008      	mov	_m_countdown,#15
+4765                     ; 509                 menustate   = MENU_SHOW_STATE_DOWN_3;
+4767  0627 35050005      	mov	_menustate,#5
+4768  062b               L3252:
+4769                     ; 511 	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
+4771  062b b609          	ld	a,__buttons
+4772  062d a444          	and	a,#68
+4773  062f a144          	cp	a,#68
+4774  0631 2603          	jrne	L441
+4775  0633 cc097a        	jp	L7442
+4776  0636               L441:
+4779  0636 3f05          	clr	_menustate
+4780  0638 ac7a097a      	jpf	L7442
+4781  063c               L5632:
+4782                     ; 514        case MENU_SHOW_STATE_DOWN_3: // Show current duration of running profile
+4782                     ; 515             if (minutes) // is timing-control in minutes?
+4784                     	btst	_minutes
+4785  0641 240a          	jruge	L7252
+4786                     ; 516                  value_to_led(curr_dur,LEDS_INT);
+4788  0643 4b00          	push	#0
+4789  0645 be0b          	ldw	x,_curr_dur
+4790  0647 cd009f        	call	_value_to_led
+4792  064a 84            	pop	a
+4794  064b 200b          	jra	L1352
+4795  064d               L7252:
+4796                     ; 517             else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(dh)),LEDS_INT);
+4798  064d 4b00          	push	#0
+4799  064f a679          	ld	a,#121
+4800  0651 cd0000        	call	_eeprom_read_config
+4802  0654 cd009f        	call	_value_to_led
+4804  0657 84            	pop	a
+4805  0658               L1352:
+4806                     ; 518             if(m_countdown == 0)
+4808  0658 3d08          	tnz	_m_countdown
+4809  065a 2608          	jrne	L3352
+4810                     ; 520                 m_countdown = TMR_SHOW_PROFILE_ITEM;
+4812  065c 350f0008      	mov	_m_countdown,#15
+4813                     ; 521                 menustate   = MENU_SHOW_STATE_DOWN;
+4815  0660 35030005      	mov	_menustate,#3
+4816  0664               L3352:
+4817                     ; 523             if(!BTN_HELD(BTN_DOWN))
+4819  0664 b609          	ld	a,__buttons
+4820  0666 a444          	and	a,#68
+4821  0668 a144          	cp	a,#68
+4822  066a 2603          	jrne	L641
+4823  066c cc097a        	jp	L7442
+4824  066f               L641:
+4825                     ; 525                 menustate = MENU_IDLE;
+4827  066f 3f05          	clr	_menustate
+4828  0671 ac7a097a      	jpf	L7442
+4829  0675               L7632:
+4830                     ; 529        case MENU_SHOW_MENU_ITEM: // S-button was pressed
+4830                     ; 530             prx_to_led(menu_item, LEDS_MENU);
+4832  0675 b606          	ld	a,_menu_item
+4833  0677 ae0001        	ldw	x,#1
+4834  067a 95            	ld	xh,a
+4835  067b cd0051        	call	_prx_to_led
+4837                     ; 531             m_countdown = TMR_NO_KEY_TIMEOUT;
+4839  067e 35960008      	mov	_m_countdown,#150
+4840                     ; 532             menustate   = MENU_SET_MENU_ITEM;
+4842  0682 35080005      	mov	_menustate,#8
+4843                     ; 533             break; // MENU_SHOW_MENU_ITEM
+4845  0686 ac7a097a      	jpf	L7442
+4846  068a               L1732:
+4847                     ; 535        case MENU_SET_MENU_ITEM:
+4847                     ; 536             if(m_countdown == 0 || BTN_RELEASED(BTN_PWR))
+4849  068a 3d08          	tnz	_m_countdown
+4850  068c 2708          	jreq	L1452
+4852  068e b609          	ld	a,__buttons
+4853  0690 a422          	and	a,#34
+4854  0692 a120          	cp	a,#32
+4855  0694 2606          	jrne	L7352
+4856  0696               L1452:
+4857                     ; 538                 menustate = MENU_IDLE;
+4859  0696 3f05          	clr	_menustate
+4861  0698 ac7a097a      	jpf	L7442
+4862  069c               L7352:
+4863                     ; 539             } else if(BTN_RELEASED(BTN_UP))
+4865  069c b609          	ld	a,__buttons
+4866  069e a488          	and	a,#136
+4867  06a0 a180          	cp	a,#128
+4868  06a2 2612          	jrne	L5452
+4869                     ; 541                 if(++menu_item > MENU_ITEM_NO) menu_item = 0;
+4871  06a4 3c06          	inc	_menu_item
+4872  06a6 b606          	ld	a,_menu_item
+4873  06a8 a107          	cp	a,#7
+4874  06aa 2502          	jrult	L7452
+4877  06ac 3f06          	clr	_menu_item
+4878  06ae               L7452:
+4879                     ; 542                 menustate = MENU_SHOW_MENU_ITEM;
+4881  06ae 35070005      	mov	_menustate,#7
+4883  06b2 ac7a097a      	jpf	L7442
+4884  06b6               L5452:
+4885                     ; 543             } else if(BTN_RELEASED(BTN_DOWN))
+4887  06b6 b609          	ld	a,__buttons
+4888  06b8 a444          	and	a,#68
+4889  06ba a140          	cp	a,#64
+4890  06bc 2614          	jrne	L3552
+4891                     ; 545                 if(--menu_item > MENU_ITEM_NO) menu_item = MENU_ITEM_NO;
+4893  06be 3a06          	dec	_menu_item
+4894  06c0 b606          	ld	a,_menu_item
+4895  06c2 a107          	cp	a,#7
+4896  06c4 2504          	jrult	L5552
+4899  06c6 35060006      	mov	_menu_item,#6
+4900  06ca               L5552:
+4901                     ; 546                 menustate = MENU_SHOW_MENU_ITEM;
+4903  06ca 35070005      	mov	_menustate,#7
+4905  06ce ac7a097a      	jpf	L7442
+4906  06d2               L3552:
+4907                     ; 547             } else if(BTN_RELEASED(BTN_S))
+4909  06d2 b609          	ld	a,__buttons
+4910  06d4 a411          	and	a,#17
+4911  06d6 a110          	cp	a,#16
+4912  06d8 2703          	jreq	L051
+4913  06da cc097a        	jp	L7442
+4914  06dd               L051:
+4915                     ; 549                 config_item = 0;
+4917  06dd 3f07          	clr	_config_item
+4918                     ; 550                 menustate   = MENU_SHOW_CONFIG_ITEM;
+4920  06df 35090005      	mov	_menustate,#9
+4921  06e3 ac7a097a      	jpf	L7442
+4922  06e7               L3732:
+4923                     ; 554        case MENU_SHOW_CONFIG_ITEM: // S-button is released
+4923                     ; 555 	    led_e &= ~(LED_NEG | LED_DEGR | LED_CELS); // clear negative, ° and Celsius symbols
+4925  06e7 b600          	ld	a,_led_e
+4926  06e9 a41f          	and	a,#31
+4927  06eb b700          	ld	_led_e,a
+4928                     ; 557 	    if(menu_item < MENU_ITEM_NO)
+4930  06ed b606          	ld	a,_menu_item
+4931  06ef a106          	cp	a,#6
+4932  06f1 2424          	jruge	L3652
+4933                     ; 559                 if(config_item & 0x1) 
+4935  06f3 b607          	ld	a,_config_item
+4936  06f5 a501          	bcp	a,#1
+4937  06f7 270a          	jreq	L5652
+4938                     ; 561                     led_10 = LED_d; // duration: 2nd value of a profile-step
+4940  06f9 35d3000d      	mov	_led_10,#211
+4941                     ; 562                     led_1  = LED_h;
+4943  06fd 3571000c      	mov	_led_1,#113
+4945  0701 2008          	jra	L7652
+4946  0703               L5652:
+4947                     ; 564                     led_10 = LED_S; // setpoint: 1st value of a profile-step
+4949  0703 35b5000d      	mov	_led_10,#181
+4950                     ; 565                     led_1  = LED_P;
+4952  0707 3576000c      	mov	_led_1,#118
+4953  070b               L7652:
+4954                     ; 567                 led_01 = led_lookup[(config_item >> 1)];
+4956  070b b607          	ld	a,_config_item
+4957  070d 44            	srl	a
+4958  070e 5f            	clrw	x
+4959  070f 97            	ld	xl,a
+4960  0710 d60000        	ld	a,(_led_lookup,x)
+4961  0713 b70b          	ld	_led_01,a
+4963  0715 2021          	jra	L1752
+4964  0717               L3652:
+4965                     ; 570                 led_10 = menu[config_item].led_c_10;
+4967  0717 b607          	ld	a,_config_item
+4968  0719 97            	ld	xl,a
+4969  071a a604          	ld	a,#4
+4970  071c 42            	mul	x,a
+4971  071d d6000a        	ld	a,(_menu,x)
+4972  0720 b70d          	ld	_led_10,a
+4973                     ; 571                 led_1  = menu[config_item].led_c_1;
+4975  0722 b607          	ld	a,_config_item
+4976  0724 97            	ld	xl,a
+4977  0725 a604          	ld	a,#4
+4978  0727 42            	mul	x,a
+4979  0728 d6000b        	ld	a,(_menu+1,x)
+4980  072b b70c          	ld	_led_1,a
+4981                     ; 572                 led_01 = menu[config_item].led_c_01;
+4983  072d b607          	ld	a,_config_item
+4984  072f 97            	ld	xl,a
+4985  0730 a604          	ld	a,#4
+4986  0732 42            	mul	x,a
+4987  0733 d6000c        	ld	a,(_menu+2,x)
+4988  0736 b70b          	ld	_led_01,a
+4989  0738               L1752:
+4990                     ; 574 	    m_countdown = TMR_NO_KEY_TIMEOUT;
+4992  0738 35960008      	mov	_m_countdown,#150
+4993                     ; 575 	    menustate   = MENU_SET_CONFIG_ITEM;
+4995  073c 350a0005      	mov	_menustate,#10
+4996                     ; 576 	    break;
+4998  0740 ac7a097a      	jpf	L7442
+4999  0744               L5732:
+5000                     ; 578        case MENU_SET_CONFIG_ITEM:
+5000                     ; 579 	    if(m_countdown == 0)
+5002  0744 3d08          	tnz	_m_countdown
+5003  0746 2606          	jrne	L3752
+5004                     ; 581                 menustate = MENU_IDLE;
+5006  0748 3f05          	clr	_menustate
+5008  074a ac7a097a      	jpf	L7442
+5009  074e               L3752:
+5010                     ; 582 	    } else if(BTN_RELEASED(BTN_PWR))
+5012  074e b609          	ld	a,__buttons
+5013  0750 a422          	and	a,#34
+5014  0752 a120          	cp	a,#32
+5015  0754 2608          	jrne	L7752
+5016                     ; 584                 menustate = MENU_SHOW_MENU_ITEM;
+5018  0756 35070005      	mov	_menustate,#7
+5020  075a ac7a097a      	jpf	L7442
+5021  075e               L7752:
+5022                     ; 585             } else if(BTN_RELEASED(BTN_UP))
+5024  075e b609          	ld	a,__buttons
+5025  0760 a488          	and	a,#136
+5026  0762 a180          	cp	a,#128
+5027  0764 2624          	jrne	L3062
+5028                     ; 587                 config_item++;
+5030  0766 3c07          	inc	_config_item
+5031                     ; 588                 if(menu_item < MENU_ITEM_NO)
+5033  0768 b606          	ld	a,_menu_item
+5034  076a a106          	cp	a,#6
+5035  076c 240a          	jruge	L5062
+5036                     ; 590                     if(config_item >= PROFILE_SIZE)
+5038  076e b607          	ld	a,_config_item
+5039  0770 a113          	cp	a,#19
+5040  0772 250e          	jrult	L1162
+5041                     ; 592                         config_item = 0;
+5043  0774 3f07          	clr	_config_item
+5044  0776 200a          	jra	L1162
+5045  0778               L5062:
+5046                     ; 595                     if(config_item >= MENU_SIZE)
+5048  0778 b607          	ld	a,_config_item
+5049  077a a113          	cp	a,#19
+5050  077c 2532          	jrult	L7732
+5051                     ; 597                         config_item = 0;
+5053  077e 3f07          	clr	_config_item
+5054  0780 202e          	jra	L7732
+5055  0782               L1162:
+5056                     ; 603                 menustate = MENU_SHOW_CONFIG_ITEM;
+5058  0782 35090005      	mov	_menustate,#9
+5060  0786 ac7a097a      	jpf	L7442
+5061  078a               L3062:
+5062                     ; 604             } else if(BTN_RELEASED(BTN_DOWN))
+5064  078a b609          	ld	a,__buttons
+5065  078c a444          	and	a,#68
+5066  078e a140          	cp	a,#64
+5067  0790 264d          	jrne	L7162
+5068                     ; 606                 config_item--;
+5070  0792 3a07          	dec	_config_item
+5071                     ; 607                 if(menu_item < MENU_ITEM_NO)
+5073  0794 b606          	ld	a,_menu_item
+5074  0796 a106          	cp	a,#6
+5075  0798 240c          	jruge	L1262
+5076                     ; 609                     if(config_item >= PROFILE_SIZE)
+5078  079a b607          	ld	a,_config_item
+5079  079c a113          	cp	a,#19
+5080  079e 2537          	jrult	L5262
+5081                     ; 611                         config_item = PROFILE_SIZE-1;
+5083  07a0 35120007      	mov	_config_item,#18
+5084  07a4 2031          	jra	L5262
+5085  07a6               L1262:
+5086                     ; 614                     if(config_item > MENU_SIZE-1)
+5088  07a6 b607          	ld	a,_config_item
+5089  07a8 a113          	cp	a,#19
+5090  07aa 2504          	jrult	L7732
+5091                     ; 616                         config_item = MENU_SIZE-1;
+5093  07ac 35120007      	mov	_config_item,#18
+5094  07b0               L7732:
+5095                     ; 618             chk_skip_menu_item: // label for goto
+5095                     ; 619                     if (!minutes && ((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn)) >= THERMOSTAT_MODE))
+5097                     	btst	_minutes
+5098  07b5 2520          	jrult	L5262
+5100  07b7 a684          	ld	a,#132
+5101  07b9 cd0000        	call	_eeprom_read_config
+5103  07bc 9f            	ld	a,xl
+5104  07bd a106          	cp	a,#6
+5105  07bf 2516          	jrult	L5262
+5106                     ; 621                         if (config_item == St)
+5108  07c1 b607          	ld	a,_config_item
+5109  07c3 a106          	cp	a,#6
+5110  07c5 2606          	jrne	L3362
+5111                     ; 623                             config_item += 2;
+5113  07c7 3c07          	inc	_config_item
+5114  07c9 3c07          	inc	_config_item
+5116  07cb 200a          	jra	L5262
+5117  07cd               L3362:
+5118                     ; 624                         }else if (config_item == dh)
+5120  07cd b607          	ld	a,_config_item
+5121  07cf a107          	cp	a,#7
+5122  07d1 2604          	jrne	L5262
+5123                     ; 626                             config_item -= 2;
+5125  07d3 3a07          	dec	_config_item
+5126  07d5 3a07          	dec	_config_item
+5127  07d7               L5262:
+5128                     ; 630                 menustate = MENU_SHOW_CONFIG_ITEM;
+5130  07d7 35090005      	mov	_menustate,#9
+5132  07db ac7a097a      	jpf	L7442
+5133  07df               L7162:
+5134                     ; 631             } else if(BTN_RELEASED(BTN_S))
+5136  07df b609          	ld	a,__buttons
+5137  07e1 a411          	and	a,#17
+5138  07e3 a110          	cp	a,#16
+5139  07e5 2703          	jreq	L251
+5140  07e7 cc097a        	jp	L7442
+5141  07ea               L251:
+5142                     ; 633                 adr          = MI_CI_TO_EEADR(menu_item, config_item);
+5144  07ea b606          	ld	a,_menu_item
+5145  07ec 97            	ld	xl,a
+5146  07ed a613          	ld	a,#19
+5147  07ef 42            	mul	x,a
+5148  07f0 9f            	ld	a,xl
+5149  07f1 bb07          	add	a,_config_item
+5150  07f3 6b01          	ld	(OFST-1,sp),a
+5152                     ; 634                 config_value = eeprom_read_config(adr);
+5154  07f5 7b01          	ld	a,(OFST-1,sp)
+5155  07f7 cd0000        	call	_eeprom_read_config
+5157  07fa bf09          	ldw	_config_value,x
+5158                     ; 635                 config_value = check_config_value(config_value, adr);
+5160  07fc 7b01          	ld	a,(OFST-1,sp)
+5161  07fe 88            	push	a
+5162  07ff be09          	ldw	x,_config_value
+5163  0801 cd029c        	call	_check_config_value
+5165  0804 84            	pop	a
+5166  0805 bf09          	ldw	_config_value,x
+5167                     ; 636                 m_countdown  = TMR_NO_KEY_TIMEOUT;
+5169  0807 35960008      	mov	_m_countdown,#150
+5170                     ; 637                 menustate    = MENU_SHOW_CONFIG_VALUE;
+5172  080b 350b0005      	mov	_menustate,#11
+5173  080f ac7a097a      	jpf	L7442
+5174  0813               L1042:
+5175                     ; 641        case MENU_SHOW_CONFIG_VALUE:
+5175                     ; 642             if(menu_item < MENU_ITEM_NO)
+5177  0813 b606          	ld	a,_menu_item
+5178  0815 a106          	cp	a,#6
+5179  0817 2414          	jruge	L5462
+5180                     ; 644                 value_to_led(config_value, (config_item & 0x1) ? LEDS_INT : LEDS_TEMP);
+5182  0819 b607          	ld	a,_config_item
+5183  081b a501          	bcp	a,#1
+5184  081d 2703          	jreq	L011
+5185  081f 4f            	clr	a
+5186  0820 2002          	jra	L211
+5187  0822               L011:
+5188  0822 a601          	ld	a,#1
+5189  0824               L211:
+5190  0824 88            	push	a
+5191  0825 be09          	ldw	x,_config_value
+5192  0827 cd009f        	call	_value_to_led
+5194  082a 84            	pop	a
+5196  082b 2032          	jra	L7462
+5197  082d               L5462:
+5198                     ; 647                 type = menu[config_item].type;
+5200  082d b607          	ld	a,_config_item
+5201  082f 97            	ld	xl,a
+5202  0830 a604          	ld	a,#4
+5203  0832 42            	mul	x,a
+5204  0833 d6000d        	ld	a,(_menu+3,x)
+5205  0836 6b02          	ld	(OFST+0,sp),a
+5207                     ; 648                 if(MENU_TYPE_IS_TEMPERATURE(type))
+5209  0838 7b02          	ld	a,(OFST+0,sp)
+5210  083a a105          	cp	a,#5
+5211  083c 240a          	jruge	L1562
+5212                     ; 650                     value_to_led(config_value,LEDS_TEMP);
+5214  083e 4b01          	push	#1
+5215  0840 be09          	ldw	x,_config_value
+5216  0842 cd009f        	call	_value_to_led
+5218  0845 84            	pop	a
+5220  0846 2017          	jra	L7462
+5221  0848               L1562:
+5222                     ; 651                 } else if (type == t_runmode)
+5224  0848 7b02          	ld	a,(OFST+0,sp)
+5225  084a a107          	cp	a,#7
+5226  084c 2609          	jrne	L5562
+5227                     ; 653                     prx_to_led(config_value,LEDS_RUN_MODE);
+5229  084e b60a          	ld	a,_config_value+1
+5230  0850 5f            	clrw	x
+5231  0851 95            	ld	xh,a
+5232  0852 cd0051        	call	_prx_to_led
+5235  0855 2008          	jra	L7462
+5236  0857               L5562:
+5237                     ; 655                     value_to_led(config_value,LEDS_INT);
+5239  0857 4b00          	push	#0
+5240  0859 be09          	ldw	x,_config_value
+5241  085b cd009f        	call	_value_to_led
+5243  085e 84            	pop	a
+5244  085f               L7462:
+5245                     ; 658             m_countdown  = TMR_NO_KEY_TIMEOUT;
+5247  085f 35960008      	mov	_m_countdown,#150
+5248                     ; 659             menustate    = MENU_SET_CONFIG_VALUE;
+5250  0863 350c0005      	mov	_menustate,#12
+5251                     ; 660             break;
+5253  0867 ac7a097a      	jpf	L7442
+5254  086b               L3042:
+5255                     ; 662        case MENU_SET_CONFIG_VALUE:
+5255                     ; 663             adr = MI_CI_TO_EEADR(menu_item, config_item);
+5257  086b b606          	ld	a,_menu_item
+5258  086d 97            	ld	xl,a
+5259  086e a613          	ld	a,#19
+5260  0870 42            	mul	x,a
+5261  0871 9f            	ld	a,xl
+5262  0872 bb07          	add	a,_config_item
+5263  0874 6b01          	ld	(OFST-1,sp),a
+5265                     ; 664             if (m_countdown == 0)
+5267  0876 3d08          	tnz	_m_countdown
+5268  0878 2606          	jrne	L1662
+5269                     ; 666                 menustate = MENU_IDLE;
+5271  087a 3f05          	clr	_menustate
+5273  087c ac7a097a      	jpf	L7442
+5274  0880               L1662:
+5275                     ; 667             } else if (BTN_RELEASED(BTN_PWR))
+5277  0880 b609          	ld	a,__buttons
+5278  0882 a422          	and	a,#34
+5279  0884 a120          	cp	a,#32
+5280  0886 2608          	jrne	L5662
+5281                     ; 669                 menustate = MENU_SHOW_CONFIG_ITEM;
+5283  0888 35090005      	mov	_menustate,#9
+5285  088c ac7a097a      	jpf	L7442
+5286  0890               L5662:
+5287                     ; 670             } else if(BTN_HELD_OR_RELEASED(BTN_UP)) 
+5289  0890 b609          	ld	a,__buttons
+5290  0892 a488          	and	a,#136
+5291  0894 a5f0          	bcp	a,#240
+5292  0896 271d          	jreq	L1762
+5293                     ; 672                 config_value++;
+5295  0898 be09          	ldw	x,_config_value
+5296  089a 1c0001        	addw	x,#1
+5297  089d bf09          	ldw	_config_value,x
+5298                     ; 673                 if ((config_value > 1000) || (--key_held_tmr < 0))
+5300  089f 9c            	rvf
+5301  08a0 be09          	ldw	x,_config_value
+5302  08a2 a303e9        	cpw	x,#1001
+5303  08a5 2e05          	jrsge	L5762
+5305  08a7 9c            	rvf
+5306  08a8 3a08          	dec	_key_held_tmr
+5307  08aa 2e2c          	jrsge	L5042
+5308  08ac               L5762:
+5309                     ; 675                     config_value += 9;
+5311  08ac be09          	ldw	x,_config_value
+5312  08ae 1c0009        	addw	x,#9
+5313  08b1 bf09          	ldw	_config_value,x
+5314  08b3 2023          	jra	L5042
+5315  08b5               L1762:
+5316                     ; 679             } else if(BTN_HELD_OR_RELEASED(BTN_DOWN)) 
+5318  08b5 b609          	ld	a,__buttons
+5319  08b7 a444          	and	a,#68
+5320  08b9 a5f0          	bcp	a,#240
+5321  08bb 272d          	jreq	L1072
+5322                     ; 681                 config_value--;
+5324  08bd be09          	ldw	x,_config_value
+5325  08bf 1d0001        	subw	x,#1
+5326  08c2 bf09          	ldw	_config_value,x
+5327                     ; 682                 if ((config_value > 1000) || (--key_held_tmr < 0))
+5329  08c4 9c            	rvf
+5330  08c5 be09          	ldw	x,_config_value
+5331  08c7 a303e9        	cpw	x,#1001
+5332  08ca 2e05          	jrsge	L5072
+5334  08cc 9c            	rvf
+5335  08cd 3a08          	dec	_key_held_tmr
+5336  08cf 2e07          	jrsge	L5042
+5337  08d1               L5072:
+5338                     ; 684                     config_value -= 9;
+5340  08d1 be09          	ldw	x,_config_value
+5341  08d3 1d0009        	subw	x,#9
+5342  08d6 bf09          	ldw	_config_value,x
+5343  08d8               L5042:
+5344                     ; 686             chk_cfg_acc_label: // label for goto
+5344                     ; 687                 config_value = check_config_value(config_value, adr);
+5346  08d8 7b01          	ld	a,(OFST-1,sp)
+5347  08da 88            	push	a
+5348  08db be09          	ldw	x,_config_value
+5349  08dd cd029c        	call	_check_config_value
+5351  08e0 84            	pop	a
+5352  08e1 bf09          	ldw	_config_value,x
+5353                     ; 688                 menustate    = MENU_SHOW_CONFIG_VALUE;
+5355  08e3 350b0005      	mov	_menustate,#11
+5357  08e7 cc097a        	jra	L7442
+5358  08ea               L1072:
+5359                     ; 689             } else if(BTN_RELEASED(BTN_S))
+5361  08ea b609          	ld	a,__buttons
+5362  08ec a411          	and	a,#17
+5363  08ee a110          	cp	a,#16
+5364  08f0 2703cc0972    	jrne	L1172
+5365                     ; 691                 if(menu_item == MENU_ITEM_NO)
+5367  08f5 b606          	ld	a,_menu_item
+5368  08f7 a106          	cp	a,#6
+5369  08f9 2668          	jrne	L3172
+5370                     ; 693                     if(config_item == rn)
+5372  08fb b607          	ld	a,_config_item
+5373  08fd a112          	cp	a,#18
+5374  08ff 2662          	jrne	L3172
+5375                     ; 695                         eeprom_write_config(EEADR_MENU_ITEM(St), 0);
+5377  0901 5f            	clrw	x
+5378  0902 89            	pushw	x
+5379  0903 a678          	ld	a,#120
+5380  0905 cd0000        	call	_eeprom_write_config
+5382  0908 85            	popw	x
+5383                     ; 696                         if (minutes)
+5385                     	btst	_minutes
+5386  090e 2405          	jruge	L7172
+5387                     ; 697                              curr_dur = 0;
+5389  0910 5f            	clrw	x
+5390  0911 bf0b          	ldw	_curr_dur,x
+5392  0913 2008          	jra	L1272
+5393  0915               L7172:
+5394                     ; 698                         else eeprom_write_config(EEADR_MENU_ITEM(dh), 0);
+5396  0915 5f            	clrw	x
+5397  0916 89            	pushw	x
+5398  0917 a679          	ld	a,#121
+5399  0919 cd0000        	call	_eeprom_write_config
+5401  091c 85            	popw	x
+5402  091d               L1272:
+5403                     ; 699                         if(config_value < THERMOSTAT_MODE)
+5405  091d 9c            	rvf
+5406  091e be09          	ldw	x,_config_value
+5407  0920 a30006        	cpw	x,#6
+5408  0923 2e3e          	jrsge	L3172
+5409                     ; 701                             eeadr_sp = EEADR_PROFILE_SETPOINT(((uint8_t)config_value), 0);
+5411  0925 b60a          	ld	a,_config_value+1
+5412  0927 97            	ld	xl,a
+5413  0928 a613          	ld	a,#19
+5414  092a 42            	mul	x,a
+5415  092b 9f            	ld	a,xl
+5416  092c 6b02          	ld	(OFST+0,sp),a
+5418                     ; 703                             if (minutes)
+5420                     	btst	_minutes
+5421  0933 2412          	jruge	L5272
+5422                     ; 705                                 setpoint = eeprom_read_config(eeadr_sp);
+5424  0935 7b02          	ld	a,(OFST+0,sp)
+5425  0937 cd0000        	call	_eeprom_read_config
+5427  093a bf06          	ldw	_setpoint,x
+5428                     ; 706                                 eeprom_write_config(EEADR_MENU_ITEM(SP), setpoint);
+5430  093c be06          	ldw	x,_setpoint
+5431  093e 89            	pushw	x
+5432  093f a672          	ld	a,#114
+5433  0941 cd0000        	call	_eeprom_write_config
+5435  0944 85            	popw	x
+5437  0945 200c          	jra	L7272
+5438  0947               L5272:
+5439                     ; 708                                 eeprom_write_config(EEADR_MENU_ITEM(SP), eeprom_read_config(eeadr_sp));
+5441  0947 7b02          	ld	a,(OFST+0,sp)
+5442  0949 cd0000        	call	_eeprom_read_config
+5444  094c 89            	pushw	x
+5445  094d a672          	ld	a,#114
+5446  094f cd0000        	call	_eeprom_write_config
+5448  0952 85            	popw	x
+5449  0953               L7272:
+5450                     ; 711                             if(eeprom_read_config(eeadr_sp+1) == 0)
+5452  0953 7b02          	ld	a,(OFST+0,sp)
+5453  0955 4c            	inc	a
+5454  0956 cd0000        	call	_eeprom_read_config
+5456  0959 a30000        	cpw	x,#0
+5457  095c 2605          	jrne	L3172
+5458                     ; 713                                 config_value = THERMOSTAT_MODE;
+5460  095e ae0006        	ldw	x,#6
+5461  0961 bf09          	ldw	_config_value,x
+5462  0963               L3172:
+5463                     ; 718                 eeprom_write_config(adr, config_value);
+5465  0963 be09          	ldw	x,_config_value
+5466  0965 89            	pushw	x
+5467  0966 7b03          	ld	a,(OFST+1,sp)
+5468  0968 cd0000        	call	_eeprom_write_config
+5470  096b 85            	popw	x
+5471                     ; 719                 menustate = MENU_SHOW_CONFIG_ITEM;
+5473  096c 35090005      	mov	_menustate,#9
+5475  0970 2008          	jra	L7442
+5476  0972               L1172:
+5477                     ; 722                 key_held_tmr = TMR_KEY_ACC; 
+5479  0972 35140008      	mov	_key_held_tmr,#20
+5480  0976 2002          	jra	L7442
+5481  0978               L7042:
+5482                     ; 726        default:
+5482                     ; 727             menustate = MENU_IDLE;
+5484  0978 3f05          	clr	_menustate
+5485                     ; 728             break;
+5487  097a               L7442:
+5488                     ; 730    menu_is_idle = (menustate == MENU_IDLE); // needed for ctrl_task()
+5490  097a 3d05          	tnz	_menustate
+5491  097c 2702          	jreq	L451
+5492  097e 2006          	jp	L021
+5493  0980               L451:
+5494  0980 72100000      	bset	_menu_is_idle
+5495  0984 2004          	jra	L221
+5496  0986               L021:
+5497  0986 72110000      	bres	_menu_is_idle
+5498  098a               L221:
+5499                     ; 731 } // button_menu_fsm()
+5502  098a 85            	popw	x
+5503  098b 81            	ret
+5694                     ; 738 uint16_t min_to_sec(enum menu_enum x)
+5694                     ; 739 {
+5695                     	switch	.text
+5696  098c               _min_to_sec:
+5698  098c 89            	pushw	x
+5699       00000002      OFST:	set	2
+5702                     ; 742     retv = eeprom_read_config(EEADR_MENU_ITEM(x)) << 6; // * 64
+5704  098d ab72          	add	a,#114
+5705  098f cd0000        	call	_eeprom_read_config
+5707  0992 58            	sllw	x
+5708  0993 58            	sllw	x
+5709  0994 58            	sllw	x
+5710  0995 58            	sllw	x
+5711  0996 58            	sllw	x
+5712  0997 58            	sllw	x
+5713  0998 1f01          	ldw	(OFST-1,sp),x
+5715                     ; 743     retv = retv - (retv >> 4); // 64 - 4 = 60
+5717  099a 1e01          	ldw	x,(OFST-1,sp)
+5718  099c 54            	srlw	x
+5719  099d 54            	srlw	x
+5720  099e 54            	srlw	x
+5721  099f 54            	srlw	x
+5722  09a0 72f001        	subw	x,(OFST-1,sp)
+5723  09a3 50            	negw	x
+5724  09a4 1f01          	ldw	(OFST-1,sp),x
+5726                     ; 744     return retv;
+5728  09a6 1e01          	ldw	x,(OFST-1,sp)
+5731  09a8 5b02          	addw	sp,#2
+5732  09aa 81            	ret
+5762                     ; 752 void init_temp_delays(void)
+5762                     ; 753 {
+5763                     	switch	.text
+5764  09ab               _init_temp_delays:
+5768                     ; 754     if (!minutes) setpoint = eeprom_read_config(EEADR_MENU_ITEM(SP));
+5770                     	btst	_minutes
+5771  09b0 2507          	jrult	L3403
+5774  09b2 a672          	ld	a,#114
+5775  09b4 cd0000        	call	_eeprom_read_config
+5777  09b7 bf06          	ldw	_setpoint,x
+5778  09b9               L3403:
+5779                     ; 755     hysteresis  = eeprom_read_config(EEADR_MENU_ITEM(hy));
+5781  09b9 a673          	ld	a,#115
+5782  09bb cd0000        	call	_eeprom_read_config
+5784  09be bf04          	ldw	_hysteresis,x
+5785                     ; 756     hysteresis2 = eeprom_read_config(EEADR_MENU_ITEM(hy2));
+5787  09c0 a674          	ld	a,#116
+5788  09c2 cd0000        	call	_eeprom_read_config
+5790  09c5 bf02          	ldw	_hysteresis2,x
+5791                     ; 758     if (cooling_delay) cooling_delay--;
+5793  09c7 be01          	ldw	x,_cooling_delay
+5794  09c9 2707          	jreq	L5403
+5797  09cb be01          	ldw	x,_cooling_delay
+5798  09cd 1d0001        	subw	x,#1
+5799  09d0 bf01          	ldw	_cooling_delay,x
+5800  09d2               L5403:
+5801                     ; 759     if (heating_delay) heating_delay--;
+5803  09d2 be03          	ldw	x,_heating_delay
+5804  09d4 2707          	jreq	L7403
+5807  09d6 be03          	ldw	x,_heating_delay
+5808  09d8 1d0001        	subw	x,#1
+5809  09db bf03          	ldw	_heating_delay,x
+5810  09dd               L7403:
+5811                     ; 760 } // init_temp_delays()
+5814  09dd 81            	ret
+5817                     	bsct
+5818  000f               L1503_pid_tmr:
+5819  000f 00            	dc.b	0
+5820                     	xref	_init_pid
+5821                     	xref	_pid_ctrl
+5864                     ; 769 void pid_control(void)
+5864                     ; 770 {
+5865                     	switch	.text
+5866  09de               _pid_control:
+5870                     ; 773     init_temp_delays(); // Initialise Heating and Cooling delay
+5872  09de adcb          	call	_init_temp_delays
+5874                     ; 775     if (kc != eeprom_read_config(EEADR_MENU_ITEM(Hc)) ||
+5874                     ; 776         ti != eeprom_read_config(EEADR_MENU_ITEM(Ti)) ||
+5874                     ; 777         td != eeprom_read_config(EEADR_MENU_ITEM(Td)))
+5876  09e0 a680          	ld	a,#128
+5877  09e2 cd0000        	call	_eeprom_read_config
+5879  09e5 b300          	cpw	x,_kc
+5880  09e7 2612          	jrne	L3703
+5882  09e9 a681          	ld	a,#129
+5883  09eb cd0000        	call	_eeprom_read_config
+5885  09ee b300          	cpw	x,_ti
+5886  09f0 2609          	jrne	L3703
+5888  09f2 a682          	ld	a,#130
+5889  09f4 cd0000        	call	_eeprom_read_config
+5891  09f7 b300          	cpw	x,_td
+5892  09f9 2728          	jreq	L1703
+5893  09fb               L3703:
+5894                     ; 779        kc = eeprom_read_config(EEADR_MENU_ITEM(Hc));
+5896  09fb a680          	ld	a,#128
+5897  09fd cd0000        	call	_eeprom_read_config
+5899  0a00 bf00          	ldw	_kc,x
+5900                     ; 780        ti = eeprom_read_config(EEADR_MENU_ITEM(Ti));
+5902  0a02 a681          	ld	a,#129
+5903  0a04 cd0000        	call	_eeprom_read_config
+5905  0a07 bf00          	ldw	_ti,x
+5906                     ; 781        td = eeprom_read_config(EEADR_MENU_ITEM(Td));
+5908  0a09 a682          	ld	a,#130
+5909  0a0b cd0000        	call	_eeprom_read_config
+5911  0a0e bf00          	ldw	_td,x
+5912                     ; 782        init_pid(kc,ti,td,ts,temp_ntc1); // Init PID controller
+5914  0a10 be00          	ldw	x,_temp_ntc1
+5915  0a12 89            	pushw	x
+5916  0a13 3b0000        	push	_ts
+5917  0a16 be00          	ldw	x,_td
+5918  0a18 89            	pushw	x
+5919  0a19 be00          	ldw	x,_ti
+5920  0a1b 89            	pushw	x
+5921  0a1c be00          	ldw	x,_kc
+5922  0a1e cd0000        	call	_init_pid
+5924  0a21 5b07          	addw	sp,#7
+5925  0a23               L1703:
+5926                     ; 785     if (++pid_tmr >= ts) 
+5928  0a23 3c0f          	inc	L1503_pid_tmr
+5929  0a25 b60f          	ld	a,L1503_pid_tmr
+5930  0a27 b100          	cp	a,_ts
+5931  0a29 250e          	jrult	L7703
+5932                     ; 787         pid_ctrl(temp_ntc1,&pid_out,setpoint);
+5934  0a2b be06          	ldw	x,_setpoint
+5935  0a2d 89            	pushw	x
+5936  0a2e 4b0d          	push	#_pid_out
+5937  0a30 be00          	ldw	x,_temp_ntc1
+5938  0a32 cd0000        	call	_pid_ctrl
+5940  0a35 5b03          	addw	sp,#3
+5941                     ; 788         pid_tmr = 0;
+5943  0a37 3f0f          	clr	L1503_pid_tmr
+5944  0a39               L7703:
+5945                     ; 790 } // pid_control()
+5948  0a39 81            	ret
+6259                     	xdef	_init_temp_delays
+6260                     	xdef	_min_to_sec
+6261                     	xdef	_menu
+6262                     	xref.b	_top_01
+6263                     	xref.b	_top_1
+6264                     	xref.b	_top_10
+6265                     	xref.b	_top_100
+6266                     	xref.b	_hc164_val
+6267                     	xref.b	_ts
+6268                     	xref.b	_td
+6269                     	xref.b	_ti
+6270                     	xref.b	_kc
+6271                     	xref.b	_temp_ntc1
+6272                     	switch	.ubsct
+6273  0000               _porte:
+6274  0000 00            	ds.b	1
+6275                     	xdef	_porte
+6276  0001               _portd:
+6277  0001 00            	ds.b	1
+6278                     	xdef	_portd
+6279  0002               _hysteresis2:
+6280  0002 0000          	ds.b	2
+6281                     	xdef	_hysteresis2
+6282  0004               _hysteresis:
+6283  0004 0000          	ds.b	2
+6284                     	xdef	_hysteresis
+6285                     	xdef	_pid_out
+6286                     	xdef	_curr_dur
+6287  0006               _setpoint:
+6288  0006 0000          	ds.b	2
+6289                     	xdef	_setpoint
+6290                     	xdef	_sensor2_selected
+6291  0008               _key_held_tmr:
+6292  0008 00            	ds.b	1
+6293                     	xdef	_key_held_tmr
+6294  0009               _config_value:
+6295  0009 0000          	ds.b	2
+6296                     	xdef	_config_value
+6297                     	xdef	__buttons
+6298                     	xdef	_m_countdown
+6299                     	xdef	_config_item
+6300                     	xdef	_menu_item
+6301                     	xdef	_minutes
+6302                     	xdef	_fahrenheit
+6303                     	xdef	_pwr_on
+6304                     	xdef	_menu_is_idle
+6305                     	xdef	_menustate
+6306                     	xdef	_heating_delay
+6307                     	xdef	_cooling_delay
+6308  000b               _led_01:
+6309  000b 00            	ds.b	1
+6310                     	xdef	_led_01
+6311  000c               _led_1:
+6312  000c 00            	ds.b	1
+6313                     	xdef	_led_1
+6314  000d               _led_10:
+6315  000d 00            	ds.b	1
+6316                     	xdef	_led_10
+6317                     	xdef	_led_e
+6318                     	xdef	_eedata
+6319                     	xdef	_led_lookup
+6320                     	xdef	_pid_control
+6321                     	xdef	_menu_fsm
+6322                     	xdef	_read_buttons
+6323                     	xdef	_check_config_value
+6324                     	xdef	_range
+6325                     	xdef	_update_profile
+6326                     	xdef	_value_to_led
+6327                     	xdef	_prx_to_led
+6328                     	xdef	_divu10
+6329                     	xref	_eeprom_write_config
+6330                     	xref	_eeprom_read_config
+6331                     	xref	_set_hc164
+6332                     	xref.b	c_x
+6352                     	xref	c_lgrsh
+6353                     	xref	c_lgadd
+6354                     	xref	c_itolx
+6355                     	end
