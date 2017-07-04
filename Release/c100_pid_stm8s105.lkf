@@ -55,6 +55,7 @@ Release\delay.o
 Release\eep.o
 Release\pid.o
 Release\scheduler.o
+Release\spi.o
 Release\stc1000p_lib.o
 #<END OBJECT_FILES>
 

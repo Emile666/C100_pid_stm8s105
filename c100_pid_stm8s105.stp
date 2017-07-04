@@ -311,6 +311,11 @@ Next=Root.Source Files.src\scheduler.c
 [Root.Source Files.src\scheduler.c]
 ElemType=File
 PathName=src\scheduler.c
+Next=Root.Source Files.src\spi.c
+
+[Root.Source Files.src\spi.c]
+ElemType=File
+PathName=src\spi.c
 Next=Root.Source Files.src\stc1000p_lib.c
 
 [Root.Source Files.src\stc1000p_lib.c]
@@ -418,6 +423,11 @@ Next=Root.Include Files.src\scheduler.h
 [Root.Include Files.src\scheduler.h]
 ElemType=File
 PathName=src\scheduler.h
+Next=Root.Include Files.src\spi.h
+
+[Root.Include Files.src\spi.h]
+ElemType=File
+PathName=src\spi.h
 Next=Root.Include Files.src\stc1000p_lib.h
 
 [Root.Include Files.src\stc1000p_lib.h]

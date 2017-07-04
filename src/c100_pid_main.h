@@ -98,6 +98,11 @@
 #define CE_NRF24L01 (0x10)
 #define PORTB_OUT   (CS_TC | CS_PT100 | CS_NRF24L01 | CE_NRF24L01)
 
+#define CS_TC_0     (PB_ODR &= ~CS_TC)
+#define CS_TC_1     (PB_ODR |=  CS_TC)
+#define CS_PT100_0  (PB_ODR &= ~CS_PT100)
+#define CS_PT100_1  (PB_ODR |=  CS_PT100)
+
 //-----------------------------------------------------------------------
 // PORTC Inputs and Outputs
 //-----------------------------------------------------------------------

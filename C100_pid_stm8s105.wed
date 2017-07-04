@@ -48,7 +48,7 @@ ptn_Child33=Bar-32
 
 [WorkState_v1_2.DockState.Bar-0]
 BarID=59419
-Bars=76
+Bars=20
 Bar#0=0
 Bar#1=59647
 Bar#2=0
@@ -69,62 +69,6 @@ Bar#16=0
 Bar#17=32768
 Bar#18=0
 Bar#19=0
-Bar#20=0
-Bar#21=0
-Bar#22=0
-Bar#23=0
-Bar#24=0
-Bar#25=0
-Bar#26=0
-Bar#27=0
-Bar#28=0
-Bar#29=0
-Bar#30=0
-Bar#31=0
-Bar#32=0
-Bar#33=0
-Bar#34=0
-Bar#35=0
-Bar#36=0
-Bar#37=0
-Bar#38=0
-Bar#39=0
-Bar#40=0
-Bar#41=0
-Bar#42=0
-Bar#43=0
-Bar#44=0
-Bar#45=0
-Bar#46=0
-Bar#47=0
-Bar#48=0
-Bar#49=0
-Bar#50=0
-Bar#51=0
-Bar#52=0
-Bar#53=0
-Bar#54=0
-Bar#55=0
-Bar#56=0
-Bar#57=0
-Bar#58=0
-Bar#59=0
-Bar#60=0
-Bar#61=0
-Bar#62=0
-Bar#63=0
-Bar#64=0
-Bar#65=0
-Bar#66=0
-Bar#67=0
-Bar#68=0
-Bar#69=0
-Bar#70=0
-Bar#71=0
-Bar#72=0
-Bar#73=0
-Bar#74=0
-Bar#75=0
 Style=0
 ExStyle=0
 PrevFloating=False
@@ -629,9 +573,9 @@ MRUWidth=23
 Docking=True
 MRUDockID=59419
 MRUDockLeftPos=885
-MRUDockTopPos=28
+MRUDockTopPos=31
 MRUDockRightPos=925
-MRUDockBottomPos=58
+MRUDockBottomPos=61
 MRUFloatStyle=8196
 MRUFloatXPos=-1
 MRUFloatYPos=0
@@ -1303,7 +1247,7 @@ ptn_Child2=ChildFrames
 
 [WorkState_v1_2.Frames.MainFrame]
 WindowPlacement=MCAAAAAACAAAAAAADAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPFABAAAAAFPAAAAAAEPEAAAAAEJDAAAAA
-Title=ST Visual Develop - C100_pid_stm8s105.stw - [c100_pid_main.c]
+Title=ST Visual Develop - C100_pid_stm8s105.stw - [spi.c]
 
 [WorkState_v1_2.Frames.ChildFrames]
 ptn_Child1=Document-0
@@ -1314,6 +1258,8 @@ ptn_Child5=Document-4
 ptn_Child6=Document-5
 ptn_Child7=Document-6
 ptn_Child8=Document-7
+ptn_Child9=Document-8
+ptn_Child10=Document-9
 
 [WorkState_v1_2.Frames.ChildFrames.Document-0]
 ptn_Child1=ViewFrame-0
@@ -1322,18 +1268,18 @@ ptn_Child1=ViewFrame-0
 DocPathName=src\c100_pid_main.c
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAACAAAAAAADAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPEDAAAAAAEDAAAAAAPLFAAAAALACAAAAA
-IsActiveChildFrame=True
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPEDAAAAAAEDAAAAAAPLFAAAAALACAAAAA
+IsActiveChildFrame=False
 IsFrameVisible=True
 
 [WorkState_v1_2.Frames.ChildFrames.Document-1]
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-1.ViewFrame-0]
-DocPathName=src\stc1000p_lib.h
+DocPathName=src\spi.h
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPOEAAAAAAOEAAAAAAJNFAAAAAFCCAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPKOAAAAAAKOAAAAAAFHGAAAAABMCAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1341,10 +1287,10 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-2.ViewFrame-0]
-DocPathName=src\stc1000p_lib.c
+DocPathName=src\stc1000p_lib.h
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPIGAAAAAAIGAAAAAADPFAAAAAPDCAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPOEAAAAAAOEAAAAAAJNFAAAAAFCCAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1352,10 +1298,10 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-3.ViewFrame-0]
-DocPathName=src\eep.h
+DocPathName=src\stc1000p_lib.c
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPCIAAAAAACIAAAAAANAGAAAAAJFCAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPIGAAAAAAIGAAAAAADPFAAAAAPDCAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1363,10 +1309,10 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-4.ViewFrame-0]
-DocPathName=src\delay.c
+DocPathName=src\eep.h
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPMJAAAAAAMJAAAAAAHCGAAAAADHCAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPCIAAAAAACIAAAAAANAGAAAAAJFCAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1374,10 +1320,10 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-5.ViewFrame-0]
-DocPathName=src\eep.c
+DocPathName=src\delay.c
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPGLAAAAAAGLAAAAAABEGAAAAANICAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPMJAAAAAAMJAAAAAAHCGAAAAADHCAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1385,10 +1331,10 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-6.ViewFrame-0]
-DocPathName=src\scheduler.c
+DocPathName=src\eep.c
 DocumentString=
 DocTemplateIndex=0
-WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPANAAAAAAANAAAAAALFGAAAAAHKCAAAAA
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPGLAAAAAAGLAAAAAABEGAAAAANICAAAAA
 IsActiveChildFrame=False
 IsFrameVisible=True
 
@@ -1396,9 +1342,31 @@ IsFrameVisible=True
 ptn_Child1=ViewFrame-0
 
 [WorkState_v1_2.Frames.ChildFrames.Document-7.ViewFrame-0]
+DocPathName=src\scheduler.c
+DocumentString=
+DocTemplateIndex=0
+WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPANAAAAAAANAAAAAALFGAAAAAHKCAAAAA
+IsActiveChildFrame=False
+IsFrameVisible=True
+
+[WorkState_v1_2.Frames.ChildFrames.Document-8]
+ptn_Child1=ViewFrame-0
+
+[WorkState_v1_2.Frames.ChildFrames.Document-8.ViewFrame-0]
 DocPathName=src\c100_pid_main.h
 DocumentString=
 DocTemplateIndex=0
 WindowPlacement=MCAAAAAAAAAAAAAABAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPKOAAAAAAKOAAAAAAFHGAAAAABMCAAAAA
 IsActiveChildFrame=False
+IsFrameVisible=True
+
+[WorkState_v1_2.Frames.ChildFrames.Document-9]
+ptn_Child1=ViewFrame-0
+
+[WorkState_v1_2.Frames.ChildFrames.Document-9.ViewFrame-0]
+DocPathName=src\spi.c
+DocumentString=
+DocTemplateIndex=0
+WindowPlacement=MCAAAAAACAAAAAAADAAAAAAAPPPPPPPPPPPPPPPPIPPPPPPPBOPPPPPPANAAAAAAANAAAAAALFGAAAAAHKCAAAAA
+IsActiveChildFrame=True
 IsFrameVisible=True

@@ -55,6 +55,7 @@ Debug\delay.o
 Debug\eep.o
 Debug\pid.o
 Debug\scheduler.o
+Debug\spi.o
 Debug\stc1000p_lib.o
 #<END OBJECT_FILES>
 

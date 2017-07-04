@@ -1,5 +1,5 @@
 
-Map of Debug\c100_pid_stm8s105.sm8 from link file Debug\c100_pid_stm8s105.lkf - Sun Jul 02 16:32:11 2017
+Map of Debug\c100_pid_stm8s105.sm8 from link file Debug\c100_pid_stm8s105.lkf - Tue Jul 04 22:35:50 2017
 
 
                                --------
@@ -17,8 +17,8 @@ start 00008126 end 00008127 length     1 segment .bit, from
 start 000000c6 end 000000c6 length     0 segment .share
 start 00000100 end 00000100 length     0 segment .data
 start 00000100 end 00000100 length     0 segment .bss
-start 00000000 end 00000787 length  1927 segment .info.
-start 00000000 end 00008b76 length 35702 segment .debug
+start 00000000 end 000008d8 length  2264 segment .info.
+start 00000000 end 0000a991 length 43409 segment .debug
 start 00008000 end 00008080 length   128 segment .const
 start 000080f4 end 00008101 length    13 segment .init
 
@@ -67,104 +67,131 @@ start 00000044 end 000000ad length   105 section .ubsct
 start 00005d0e end 0000628c length  1406 section .debug
 start 000001db end 00000249 length   110 section .info.
 
+Debug\spi.o:
+start ******** end ******** length     0 section .text *** removed ***
+start ******** end ******** length     0 section .ubsct *** removed ***
+start 0000628c end 000080a7 length  7707 section .debug
+start 00000249 end 000002b1 length   104 section .info.
+start ******** end ******** length     0 section .const *** removed ***
+
 Debug\stc1000p_lib.o:
 start 00008a72 end 000094ac length  2618 section .text
 start 00000015 end 00000025 length    16 section .bsct
 start 000000ad end 000000bb length    14 section .ubsct
-start 0000628c end 00008a0b length 10111 section .debug
-start 00000249 end 000002ba length   113 section .info.
+start 000080a7 end 0000a826 length 10111 section .debug
+start 000002b1 end 00000322 length   113 section .info.
 start 00008084 end 000080f4 length   112 section .const
 start 00004000 end 0000410c length   268 section .eeprom
 start 0000c5:0 end 0000c5:4 length     4 section .bit
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strcmp0.o:
 start 000094ac end 000094bf length    19 section .text
-start 000002ba end 000002e8 length    46 section .info.
+start 00000322 end 00000350 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strncp.o:
 start 000094bf end 000094e5 length    38 section .text
-start 000002e8 end 0000035c length   116 section .info.
+start 00000350 end 000003c4 length   116 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o:
 start 000094e5 end 000094f9 length    20 section .text
-start 0000035c end 0000038b length    47 section .info.
+start 000003c4 end 000003f3 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o:
 start 000094f9 end 00009507 length    14 section .text
-start 0000038b end 000003ba length    47 section .info.
+start 000003f3 end 00000422 length    47 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o:
+start ******** end ******** length     0 section .text *** removed ***
+start 00000422 end 00000450 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o:
 start ******** end ******** length     0 section .text *** removed ***
-start 000003ba end 000003e8 length    46 section .info.
+start 00000450 end 0000047e length    46 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsdiv.o:
+start ******** end ******** length     0 section .text *** removed ***
+start 0000047e end 000004ad length    47 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o:
+start 00009507 end 000095f2 length   235 section .text
+start 000004ad end 000004db length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadc.o:
 start ******** end ******** length     0 section .text *** removed ***
-start 000003e8 end 00000417 length    47 section .info.
+start 000004db end 0000050a length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o:
-start 00009507 end 0000951e length    23 section .text
-start 00000417 end 00000446 length    47 section .info.
+start 000095f2 end 00009609 length    23 section .text
+start 0000050a end 00000539 length    47 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lglsh.o:
+start ******** end ******** length     0 section .text *** removed ***
+start 00000539 end 00000568 length    47 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o:
+start 00009609 end 0000961c length    19 section .text
+start 00000568 end 00000597 length    47 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o:
+start ******** end ******** length     0 section .text *** removed ***
+start 00000597 end 000005c5 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o:
-start 0000951e end 0000952c length    14 section .text
-start 00000446 end 00000475 length    47 section .info.
+start 0000961c end 0000962a length    14 section .text
+start 000005c5 end 000005f4 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o:
-start 0000952c end 000095b7 length   139 section .text
-start 00000475 end 000004a3 length    46 section .info.
+start 0000962a end 000096b5 length   139 section .text
+start 000005f4 end 00000622 length    46 section .info.
+
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o:
+start 000096b5 end 000096ca length    21 section .text
+start 00000622 end 00000650 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lreg.o:
 start 000000bb end 000000bf length     4 section .ubsct
-start 000004a3 end 000004d1 length    46 section .info.
+start 00000650 end 0000067e length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o:
 start ******** end ******** length     0 section .text *** removed ***
-start 000004d1 end 000004ff length    46 section .info.
+start 0000067e end 000006ac length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o:
 start ******** end ******** length     0 section .text *** removed ***
-start 000004ff end 0000052d length    46 section .info.
+start 000006ac end 000006da length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o:
-start 000095b7 end 000095cb length    20 section .text
-start 0000052d end 0000055c length    47 section .info.
+start 000096ca end 000096de length    20 section .text
+start 000006da end 00000709 length    47 section .info.
 
-(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o:
-start 000095cb end 000096b6 length   235 section .text
-start 0000055c end 0000058a length    46 section .info.
-
-(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o:
-start 000096b6 end 000096c9 length    19 section .text
-start 0000058a end 000005b9 length    47 section .info.
-
-(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o:
-start 000096c9 end 000096de length    21 section .text
-start 000005b9 end 000005e7 length    46 section .info.
+(C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o:
+start ******** end ******** length     0 section .text *** removed ***
+start 00000709 end 00000738 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o:
 start 000096de end 000096f0 length    18 section .text
-start 000005e7 end 00000615 length    46 section .info.
+start 00000738 end 00000766 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o:
 start 000096f0 end 000096f7 length     7 section .text
-start 00000615 end 00000644 length    47 section .info.
+start 00000766 end 00000795 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o:
 start 000096f7 end 00009733 length    60 section .text
-start 00000644 end 00000672 length    46 section .info.
+start 00000795 end 000007c3 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)xreg.o:
 start 000000bf end 000000c2 length     3 section .ubsct
-start 00000672 end 000006a0 length    46 section .info.
+start 000007c3 end 000007f1 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)yreg.o:
 start 000000c2 end 000000c5 length     3 section .ubsct
-start 000006a0 end 000006ce length    46 section .info.
+start 000007f1 end 0000081f length    46 section .info.
 
 Debug\stm8_interrupt_vector.o:
 start 00009733 end 00009734 length     1 section .text
-start 00008a0b end 00008b76 length   363 section .debug
-start 000006ce end 00000748 length   122 section .info.
+start 0000a826 end 0000a991 length   363 section .debug
+start 0000081f end 00000899 length   122 section .info.
 start 00008000 end 00008080 length   128 section .const
 
 
@@ -473,6 +500,7 @@ _SPI_CR1                   00005200   defined in Debug\c100_pid_main.o
 _SPI_CR2                   00005201   defined in Debug\c100_pid_main.o
 _SPI_CRCPR                 00005205   defined in Debug\c100_pid_main.o
 _SPI_DR                    00005204   defined in Debug\c100_pid_main.o
+_SPI_Handler               ********   *** removed from Debug\spi.o ***
 _SPI_ICR                   00005202   defined in Debug\c100_pid_main.o
 _SPI_RXCRCR                00005206   defined in Debug\c100_pid_main.o
 _SPI_SR                    00005203   defined in Debug\c100_pid_main.o
@@ -638,6 +666,9 @@ _leds_out                  00000032   defined in Debug\c100_pid_main.o section .
 _m_countdown               0000001d   defined in Debug\stc1000p_lib.o section .bsct, initialized
 _main                      0000865c   defined in Debug\c100_pid_main.o section .text
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
+_max31855_read             ********   *** removed from Debug\spi.o ***
+_max31865_init             ********   *** removed from Debug\spi.o ***
+_max31865_read             ********   *** removed from Debug\spi.o ***
 _max_tasks                 00000014   defined in Debug\scheduler.o section .bsct, initialized
 _menu                      0000808e   defined in Debug\stc1000p_lib.o section .const
 _menu_fsm                  00008f06   defined in Debug\stc1000p_lib.o section .text
@@ -677,6 +708,10 @@ _set_task_time_period      00008a19   defined in Debug\scheduler.o section .text
 _setpoint                  000000b3   defined in Debug\stc1000p_lib.o section .ubsct
 _setup_gpio_ports          00008575   defined in Debug\c100_pid_main.o section .text
 _setup_timer2              00008560   defined in Debug\c100_pid_main.o section .text
+_spi_error                 ********   *** removed from Debug\spi.o ***
+_spi_init                  ********   *** removed from Debug\spi.o ***
+_spi_read                  ********   *** removed from Debug\spi.o ***
+_spi_write                 ********   *** removed from Debug\spi.o ***
 _std                       00000009   defined in Debug\c100_pid_main.o section .bsct, initialized
 _std_task                  0000861e   defined in Debug\c100_pid_main.o section .text
 _strcmp                    000094ac   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strcmp0.o section .text
@@ -708,57 +743,70 @@ _value_to_led              00008b11   defined in Debug\stc1000p_lib.o section .t
 _yk_1                      00000036   defined in Debug\pid.o section .ubsct
 _yk_2                      00000034   defined in Debug\pid.o section .ubsct
 c_cmulx                    000094e5   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o section .text
-                                      used in Debug\pid.o
-c_divsl                    000095cb   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
-                                      *** not used ***
-c_divul                    000095e2   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
+                                      used in Debug\pid.o Debug\spi.o
+c_divsl                    00009507   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
+                                      used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsdiv.o
+c_divul                    0000951e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o
 c_itolx                    000094f9   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o section .text
                                       used in Debug\pid.o Debug\stc1000p_lib.o
+c_ladd                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o ***
 c_lcmp                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o ***
+c_ldiv                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsdiv.o ***
 c_lgadc                    ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadc.o ***
-c_lgadd                    00009507   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o section .text
+c_lgadd                    000095f2   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o section .text
                                       used in Debug\pid.o Debug\stc1000p_lib.o
-c_lgneg                    000096b6   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o section .text
+c_lglsh                    ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lglsh.o ***
+c_lgneg                    00009609   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
-c_lgrsh                    0000951e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o section .text
+c_lgor                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o ***
+c_lgrsh                    0000961c   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o section .text
                                       used in Debug\stc1000p_lib.o
-c_lmul                     0000952c   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
+c_lmul                     0000962a   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
                                       used in Debug\pid.o
-c_lmulc                    00009534   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
+c_lmulc                    00009632   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
                                       *** not used ***
-c_lneg                     000096c9   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o section .text
-                                      used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
+c_lneg                     000096b5   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o section .text
+                                      used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsdiv.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
 c_lreg                     000000bb   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lreg.o section .ubsct
                                       used in Debug\delay.o Debug\pid.o
+                                              Debug\spi.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o
-                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
-                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o
 c_lsub                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o ***
 c_ltor                     ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o ***
-c_ludv                     000095b7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o section .text
+c_ludv                     000096ca   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o section .text
                                       used in Debug\pid.o
+c_lursh                    ********   *** removed from (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o ***
 c_rtol                     000096de   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o section .text
                                       used in Debug\delay.o Debug\pid.o
+                                              Debug\spi.o
 c_uitolx                   000096f0   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o section .text
                                       used in Debug\delay.o Debug\pid.o
+                                              Debug\spi.o
 c_umul                     000096f7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o section .text
                                       used in Debug\pid.o
 c_x                        000000bf   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)xreg.o section .ubsct
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
                                               Debug\c100_pid_main.o
                                               Debug\stc1000p_lib.o
-                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsdiv.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
+                                              (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o
 c_y                        000000c2   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)yreg.o section .ubsct
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
