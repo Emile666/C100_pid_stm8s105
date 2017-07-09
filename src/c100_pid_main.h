@@ -56,7 +56,7 @@
 
 /* Define STC-1000+ version number (XYY, X=major, YY=minor) */
 /* Also, keep track of last version that has changes in EEPROM layout */
-#define STC1000P_VERSION	    (200)
+#define STC1000P_VERSION	    (300)
 #define STC1000P_EEPROM_VERSION	 (20)
 
 //-----------------------------------------------------------------------
@@ -181,6 +181,8 @@
 //-----------------------------------------------------------------------
 #define LED_OFF	(0x00)
 #define LED_ON  (0xFF)
+#define LED_MIN (0x10)
+#define LED_DP  (0x08)
 #define LED_0	(0xE7)
 #define LED_1	(0x03)
 #define LED_2	(0xD6)
@@ -215,15 +217,6 @@
 #define LED_U	(0xE3)
 #define LED_u	(0xC1)
 #define LED_y	(0xB3)
-
-#define LED_HEAT    (0x01)
-#define LED_SET     (0x02)
-#define LED_COOL    (0x04)
-#define LED_DECIMAL (0x08)
-#define LED_POINT   (0x10)
-#define LED_CELS    (0x20)
-#define LED_DEGR    (0x40)
-#define LED_NEG     (0x80)
 
 // Function prototypes
 void set_hc164(uint8_t x);

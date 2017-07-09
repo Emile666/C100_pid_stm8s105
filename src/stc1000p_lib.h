@@ -36,8 +36,8 @@
 //#include "pid.h"
 
 // Define limits for temperatures in Fahrenheit and Celsius
-#define TEMP_MAX_F	  (2500)
-#define TEMP_MIN_F	  (-400)
+#define TEMP_MAX_F	      (2500)
+#define TEMP_MIN_F	      (-400)
 #define TEMP_CORR_MAX_F	  ( 100)
 #define TEMP_CORR_MIN_F	  (-100)
 #define TEMP_HYST_1_MAX_F ( 100)
@@ -45,8 +45,8 @@
 #define SP_ALARM_MIN_F	  (-800)
 #define SP_ALARM_MAX_F	  ( 800)
 
-#define TEMP_MAX_C	  (1400)
-#define TEMP_MIN_C	  (-400)
+#define TEMP_MAX_C	      (1400)
+#define TEMP_MIN_C	      (-400)
 #define TEMP_CORR_MAX_C	  (  50)
 #define TEMP_CORR_MIN_C	  ( -50)
 #define TEMP_HYST_1_MAX_C (  50)
@@ -55,9 +55,9 @@
 #define SP_ALARM_MAX_C	  ( 400)
 
 // Default values
-#define DEFAULT_SP	  (200)
-#define DEFAULT_hy	   (50)
-#define DEFAULT_hy2	  (100)
+#define DEFAULT_SP	       (200)
+#define DEFAULT_hy	        (50)
+#define DEFAULT_hy2	       (100)
 
 //---------------------------------------------------------------------------
 // Basic defines for EEPROM config addresses
@@ -107,14 +107,14 @@ enum e_item_type
 //
 // SP	Set setpoint	                                 -40 to 140°C or -40 to 250°F
 // hy	Set hysteresis                                   0.0 to 5.0°C or 0.0 to 10.0°F
-// hy2	Set hysteresis for 2nd temp probe	         0.0 to 25.0°C or 0.0 to 50.0°F
-// tc	Set temperature correction	                 -5.0 to 5.0°C or -10.0 to 10.0°F
+// hy2	Set hysteresis for 2nd temp probe	             0.0 to 25.0°C or 0.0 to 50.0°F
+// tc	Set temperature correction	                     -5.0 to 5.0°C or -10.0 to 10.0°F
 // tc2	Set temperature correction for 2nd temp probe    -5.0 to 5.0°C or -10.0 to 10.0°F
 // SA	Setpoint alarm	                                 0 = off, -40 to 40°C or -80 to 80°F
-// St	Set current profile step	                 0 to 8
+// St	Set current profile step	                     0 to 8
 // dh	Set current profile duration	                 0 to 999 hours
-// cd	Set cooling delay	                         0 to 60 minutes
-// hd	Set heating delay	                         0 to 60 minutes
+// cd	Set cooling delay	                             0 to 60 minutes
+// hd	Set heating delay	                             0 to 60 minutes
 // rP	Ramping	                                         0 = off, 1 = on
 // CF	Set Celsius of Fahrenheit temperature display    0 = Celsius, 1 = Fahrenheit
 // Pb2	Enable 2nd temp probe for thermostat control	 0 = off, 1 = on
@@ -126,25 +126,25 @@ enum e_item_type
 // rn	Set run mode	                                 Pr0 to Pr5 and th (6)
 //-----------------------------------------------------------------------------
 #define MENU_DATA(_) \
-	_(SP, 	LED_S, 	LED_P, 	LED_OFF, t_temperature,	DEFAULT_SP)	\
-	_(hy, 	LED_h, 	LED_y, 	LED_OFF, t_hyst_1,	DEFAULT_hy) 	\
-	_(hy2, 	LED_h, 	LED_y, 	LED_2, 	 t_hyst_2, 	DEFAULT_hy2)	\
-	_(tc, 	LED_t, 	LED_c, 	LED_OFF, t_tempdiff,	3)		\
-	_(tc2, 	LED_t, 	LED_c, 	LED_2, 	 t_tempdiff,	-2)		\
-	_(SA, 	LED_S, 	LED_A, 	LED_OFF, t_sp_alarm,	0)		\
-	_(St, 	LED_S, 	LED_t, 	LED_OFF, t_step,	0)		\
-	_(dh, 	LED_d, 	LED_h, 	LED_OFF, t_duration,	0)		\
-	_(cd, 	LED_c, 	LED_d, 	LED_OFF, t_delay,	5)		\
-	_(hd, 	LED_h, 	LED_d, 	LED_OFF, t_delay,	2)		\
-	_(rP, 	LED_r, 	LED_P, 	LED_OFF, t_boolean,	1)		\
-	_(CF, 	LED_C, 	LED_F, 	LED_OFF, t_boolean,	0)		\
-	_(Pb2, 	LED_P, 	LED_b, 	LED_2, 	 t_boolean,	0)		\
-	_(HrS, 	LED_H, 	LED_r, 	LED_S, 	 t_boolean,	1)		\
-	_(Hc, 	LED_H, 	LED_c, 	LED_OFF, t_parameter,	80)		\
-	_(Ti, 	LED_t, 	LED_I, 	LED_OFF, t_parameter,  280)		\
-	_(Td, 	LED_t, 	LED_d, 	LED_OFF, t_parameter,   20)		\
-	_(Ts, 	LED_t, 	LED_S, 	LED_OFF, t_parameter,    0)		\
-	_(rn, 	LED_r, 	LED_n, 	LED_OFF, t_runmode,    NO_OF_PROFILES)
+	_(SP, 	LED_S, 	LED_P, 	LED_OFF, t_temperature,	DEFAULT_SP)	    \
+	_(hy, 	LED_h, 	LED_y, 	LED_OFF, t_hyst_1,	    DEFAULT_hy) 	\
+	_(hy2, 	LED_h, 	LED_y, 	LED_2, 	 t_hyst_2, 	    DEFAULT_hy2)    \
+	_(tc, 	LED_t, 	LED_c, 	LED_OFF, t_tempdiff,	 3)		        \
+	_(tc2, 	LED_t, 	LED_c, 	LED_2, 	 t_tempdiff,	-2)		        \
+	_(SA, 	LED_S, 	LED_A, 	LED_OFF, t_sp_alarm,	 0)		        \
+	_(St, 	LED_S, 	LED_t, 	LED_OFF, t_step,	     0)		        \
+	_(dh, 	LED_d, 	LED_h, 	LED_OFF, t_duration,	 0)		        \
+	_(cd, 	LED_c, 	LED_d, 	LED_OFF, t_delay,	     5)		        \
+	_(hd, 	LED_h, 	LED_d, 	LED_OFF, t_delay,	     2)		        \
+	_(rP, 	LED_r, 	LED_P, 	LED_OFF, t_boolean,	     1)		        \
+	_(CF, 	LED_C, 	LED_F, 	LED_OFF, t_boolean,	     0)		        \
+	_(Pb2, 	LED_P, 	LED_b, 	LED_2, 	 t_boolean,	     0)		        \
+	_(HrS, 	LED_H, 	LED_r, 	LED_S, 	 t_boolean,	     1)		        \
+	_(Hc, 	LED_H, 	LED_c, 	LED_OFF, t_parameter,	80)		        \
+	_(Ti, 	LED_t, 	LED_I, 	LED_OFF, t_parameter,  280)		        \
+	_(Td, 	LED_t, 	LED_d, 	LED_OFF, t_parameter,   20)		        \
+	_(Ts, 	LED_t, 	LED_S, 	LED_OFF, t_parameter,    0)		        \
+	_(rn, 	LED_r, 	LED_u, 	LED_n  , t_runmode,    NO_OF_PROFILES)
 
 #define ENUM_VALUES(name,led10ch,led1ch,led01ch,type,default_value) name,
 #define EEPROM_DEFAULTS(name,led10ch,led1ch,led01ch,type,default_value) default_value,
@@ -161,25 +161,25 @@ enum menu_enum
 //---------------------------------------------------------------------------
 #define EEADR_PROFILE_SETPOINT(profile, step)	(((profile)*PROFILE_SIZE) + ((step)<<1))
 #define EEADR_PROFILE_DURATION(profile, step)	EEADR_PROFILE_SETPOINT(profile, step) + 1
-#define EEADR_MENU				EEADR_PROFILE_SETPOINT(NO_OF_PROFILES, 0)
+#define EEADR_MENU				                EEADR_PROFILE_SETPOINT(NO_OF_PROFILES, 0)
 // Find the parameter word address in EEPROM
-#define EEADR_MENU_ITEM(name)		        (EEADR_MENU + (name))
+#define EEADR_MENU_ITEM(name)		            (EEADR_MENU + (name))
 // Help to convert menu item number and config item number to an EEPROM config address
 #define MI_CI_TO_EEADR(mi, ci)	                ((mi)*PROFILE_SIZE + (ci))
 // Set POWER_ON after LAST parameter (in this case rn)!
-#define EEADR_POWER_ON				(EEADR_MENU_ITEM(rn) + 1)
+#define EEADR_POWER_ON				            (EEADR_MENU_ITEM(rn) + 1)
 
 // These are the bit-definitions in _buttons
-#define BTN_UP	 (0x88)
-#define BTN_DOWN (0x44)
-#define BTN_PWR	 (0x22)
-#define BTN_S	 (0x11)
+#define BTN_SET	 (0x88)
+#define BTN_LEFT (0x44)
+#define BTN_DOWN (0x22)
+#define BTN_UP	 (0x11)
 
 // Helpful defines to handle buttons
-#define BTN_IDLE(btn)		  ((_buttons & (btn)) == 0x00)
-#define BTN_PRESSED(btn)	  ((_buttons & (btn)) == ((btn) & 0x0f))
-#define BTN_HELD(btn)		  ((_buttons & (btn)) == (btn))
-#define BTN_RELEASED(btn)	  ((_buttons & (btn)) == ((btn) & 0xf0))
+#define BTN_IDLE(btn)		      ((_buttons & (btn)) == 0x00)
+#define BTN_PRESSED(btn)	      ((_buttons & (btn)) == ((btn) & 0x0f))
+#define BTN_HELD(btn)		      ((_buttons & (btn)) == (btn))
+#define BTN_RELEASED(btn)	      ((_buttons & (btn)) == ((btn) & 0xf0))
 #define BTN_HELD_OR_RELEASED(btn) ((_buttons & (btn) & 0xf0))
 
 // Defines for prx_led() function
@@ -189,6 +189,8 @@ enum menu_enum
 // Defines for value_to_led() function
 #define LEDS_INT      (0)
 #define LEDS_TEMP     (1)
+#define ROW_TOP       (2)
+#define ROW_BOT       (3)
 
 // Timers for state transition diagram. One-tick = 100 msec.
 #define TMR_POWERDOWN          (30)
@@ -214,10 +216,9 @@ enum menu_states
 {
     MENU_IDLE = 0,            // Default menu
     MENU_SHOW_VERSION,        // Show version number of firmware
-    MENU_SHOW_STATE_UP,       // Show Setpoint value
-    MENU_SHOW_STATE_DOWN,     // Show profile number or th
-    MENU_SHOW_STATE_DOWN_2,   // Show current step number within profile
-    MENU_SHOW_STATE_DOWN_3,   // Show current duration of profile
+    MENU_SHOW_STATE_DOWN,     // Show profile number or th/pid
+    MENU_SHOW_STATE_DOWN_2,   // Show current step number st within profile
+    MENU_SHOW_STATE_DOWN_3,   // Show current duration dh of profile
     MENU_POWER_DOWN_WAIT,     // Power-down mode, display is off
     MENU_SHOW_MENU_ITEM,      // Show name of menu-item / profile
     MENU_SET_MENU_ITEM,       // Navigate through menu-items / profile
@@ -229,8 +230,8 @@ enum menu_states
 
 // Function Prototypes
 uint16_t divu10(uint16_t n); 
-void     prx_to_led(uint8_t run_mode, uint8_t is_menu);
-void     value_to_led(int value, uint8_t decimal); 
+void     val_to_bcd(int16_t *value, uint16_t digit, uint8_t *led, uint8_t lz);
+void     value_to_led(int16_t value, uint8_t decimal, uint8_t row); 
 void     update_profile(void);
 int16_t  range(int16_t x, int16_t min, int16_t max);
 int16_t  check_config_value(int16_t config_value, uint8_t eeadr);

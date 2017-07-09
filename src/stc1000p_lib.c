@@ -49,12 +49,13 @@ const uint8_t led_lookup[] = {LED_0,LED_1,LED_2,LED_3,LED_4,LED_5,LED_6,LED_7,LE
 }; // eedata[]
 
 // Global variables to hold LED data (for multiplexing purposes)
-uint8_t led_e = {0x00};         // value of extra LEDs
-uint8_t led_10, led_1, led_01;  // values of 10s, 1s and 0.1s
+uint8_t top_100, top_10, top_1, top_01;  // 7-segments top row: 100s, 10s, 1s and 0.1s
+uint8_t bot_100, bot_10, bot_1, bot_01;  // 7-segments bottom row: 100s, 10s, 1s and 0.1s
 
 uint16_t cooling_delay = 60;    // Initial cooling delay
 uint16_t heating_delay = 60;    // Initial heating delay
 uint8_t  menustate     = MENU_IDLE; // Current STD state number for menu_fsm()
+uint8_t  ret_state;                 // menustate to return to
 bool     menu_is_idle  = true;  // No menu active within STD
 bool     pwr_on        = true;  // True = power ON, False = power OFF
 bool     fahrenheit    = false; // false = Celsius, true = Fahrenheit
@@ -82,7 +83,7 @@ extern uint16_t ti;        // Parameter value for I action in seconds
 extern uint16_t td;        // Parameter value for D action in seconds
 extern uint8_t  ts;        // Parameter value for sample time [sec.]
 extern uint8_t  hc164_val;
-extern uint8_t  top_100,top_10,top_1, top_01;
+extern uint16_t leds_out;              // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
 
 // This contains the definition of the menu-items for the parameters menu
 const struct s_menu menu[] = 
@@ -117,35 +118,54 @@ uint16_t divu10(uint16_t n)
              is_menu : 0=thermostat mode, 1=within a menu         
   Returns  : -
   ---------------------------------------------------------------------------*/
-void prx_to_led(uint8_t run_mode, uint8_t is_menu)
+void prx_to_led(uint8_t run_mode)
 {
-    // clear negative, deg, c and point indicators
-    led_e &= ~(LED_NEG | LED_DEGR | LED_CELS | LED_POINT);  
-    if(run_mode < NO_OF_PROFILES)
+    bot_100  = LED_OFF;
+    if (run_mode < THERMOSTAT_MODE)
     {   // one of the profiles
-	led_10 = LED_P;
-	led_1  = LED_r;
-	led_01 = led_lookup[run_mode];
-    } else { // parameter menu
-	if (is_menu)
-        {   // within menu
-	    led_10 = LED_S;
-	    led_1  = LED_E;
-	    led_01 = LED_t;
-	} else if (ts == 0) 
-        { // Thermostat Mode
-	    led_10 = LED_t; 
-	    led_1  = LED_h;
-	    led_01 = LED_OFF;
-	} // else if
-        else 
-        {   // PID controller mode
-	    led_10 = LED_P; 
-	    led_1  = LED_I;
-	    led_01 = LED_d;
-        } // else
+        bot_10 = LED_P; 
+        bot_1  = LED_r;
+        bot_01 = led_lookup[run_mode];
+    } 
+    else if (ts == 0) 
+    { // Thermostat Mode
+        bot_100 = bot_01 = LED_OFF;
+        bot_10  = LED_t;
+        bot_1   = LED_h;
+    } // else if
+    else 
+    {   // PID controller mode
+        bot_10 = LED_P; 
+        bot_1  = LED_I;
+        bot_01 = LED_d;
     } // else
 } // prx_to_led()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This routine converts the number in value to a BCD digit.
+             Which digit to convert is specified by digit (1000, 100, 10).
+  Variables: *value  : the value to convert into a BCD code
+             digit   : 1000, 100, 10, 1
+             *led    : the 7-segment display variable
+             lz      : 1 = leading zero, 0 = display off
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void val_to_bcd(int16_t *value, uint16_t digit, uint8_t *led, uint8_t lz)
+{
+    uint8_t i;
+    
+	if (*value >= digit)
+    {
+	   for(i = 0; *value >= digit; i++)
+       {
+	      *value -= digit;
+	   } // for
+	   *led = led_lookup[i & 0x0f];
+	} 
+    else if (lz)
+         *led = LED_0;   // Leading zero
+    else *led = LED_OFF; // display off
+} // val_to_bcd()
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine is called by menu_fsm() to show the value of a
@@ -153,59 +173,53 @@ void prx_to_led(uint8_t run_mode, uint8_t is_menu)
              In case of a temperature, a decimal point is displayed (for 0.1).
              In case of a non-temperature value, only the value itself is shown.
   Variables: value  : the value to display
-             decimal: 0=display as integer, 1=display temperature as xx.1
+             decimal: 0=display as integer, 1=display temperature as xxx.1
+             row    : ROW_TOP = display on top row of 7-segment displays
+                      ROW_BOT = display on bottom row of 7-segment displays
   Returns  : -
   ---------------------------------------------------------------------------*/
-void value_to_led(int value, uint8_t decimal) 
+void value_to_led(int16_t value, uint8_t decimal, uint8_t row) 
 {
-	uint8_t i;
-
-	led_e &= ~(LED_NEG | LED_DEGR | LED_CELS); // clear negative, ° and Celsius symbols
-        if (value < 0) 
-        {  // Handle negative values
-           led_e |= LED_NEG;
-	   value  = -value;
+	uint8_t i;           // loop-variable
+    int16_t val = value; // copy of value
+    uint8_t *p100, *p10, *p1, *p01; // pointers to 7-segment display values
+    
+    if (val < 0) 
+    {  // Handle negative values
+       val  = -value;
 	} // if
 
-        if(decimal == 1)
-        {  // this is a temperature
-	   led_e |= LED_DEGR;
-           if (!fahrenheit) led_e |= LED_CELS; // Celsius symbol
-	} // if
-
-	// If temperature >= 100 we must loose a decimal...
-	if (value >= 1000) 
-        {
-	   value   = divu10((uint16_t) value);
-	   decimal = 0;
-	} // if
-
+    if (row == ROW_TOP)
+    {
+        p100 = &top_100; p10  = &top_10;
+        p1   = &top_1;   p01  = &top_01;
+    }
+    else
+    {   // row == ROW_BOT
+        p100 = &bot_100; p10  = &bot_10;
+        p1   = &bot_1;   p01  = &bot_01;
+    } // else
+    
 	// Convert value to BCD and set LED outputs
-	if(value >= 100)
-        {
-	   for(i = 0; value >= 100; i++)
-           {
-	      value -= 100;
-	   } // for
-	   led_10 = led_lookup[i & 0x0f];
-	} else {
-	   led_10 = LED_OFF; // Turn off led if zero (loose leading zeros)
-	} // else
-	if (value >= 10 || decimal || led_10 != LED_OFF)
-        {  // If decimal, we want 1 leading zero
-	   for(i = 0; value >= 10; i++)
-           {
-	      value -= 10;
-	   } // for
-	   led_1 = led_lookup[i];
-	   if (decimal)
-           {
-	      led_1 |= LED_DECIMAL;
-	   } // if
-	} else {
-	   led_1 = LED_OFF; // Turn off led if zero (loose leading zeros)
-	} // else
-	led_01 = led_lookup[(uint8_t)value];
+	val_to_bcd(&val, 1000, p100,0); 
+	val_to_bcd(&val,  100, p10 ,(*p100 != LED_OFF));
+	val_to_bcd(&val,   10, p1  ,(*p10  != LED_OFF));
+	val_to_bcd(&val,    1, p01 ,1);
+
+    if (decimal == 1)
+    {  // this is a temperature
+       if (*p1 == LED_OFF) *p1 = LED_0; // add leading zero if needed
+	   *p1 |= LED_DP;                   // add decimal point
+	} // if
+
+    if (value < 0)
+    {   // original value < 0 
+        if ((value > -10) && (decimal == 0)) 
+                                *p1   = LED_MIN;
+        else if (value > -100)  *p10  = LED_MIN;
+        else if (value > -1000) *p100 = LED_MIN;
+        // value <= -1000 is not realistic
+    } // if
 } // value_to_led()
 
 /*-----------------------------------------------------------------------------
@@ -247,38 +261,38 @@ void update_profile(void)
       // Reached end of step?
       if (curr_dur >= profile_step_dur) 
       {   // Update setpoint with value from next step
-	  if (minutes) setpoint = profile_next_step_sp;
-	  eeprom_write_config(EEADR_MENU_ITEM(SP), profile_next_step_sp);
-	  // Is this the last step (next step is number 9 or next step duration is 0)?
-	  if ((curr_step == NO_OF_TT_PAIRS-1) || eeprom_read_config(profile_step_eeaddr + 3) == 0) 
-          {   // Switch to thermostat mode.
-              eeprom_write_config(EEADR_MENU_ITEM(rn), THERMOSTAT_MODE);
-              return; // Fastest way out...
-	  } // if
-          curr_dur = 0; // Reset duration
-	  curr_step++;  // Update step
-	  eeprom_write_config(EEADR_MENU_ITEM(St), curr_step);
+        if (minutes) setpoint = profile_next_step_sp;
+        eeprom_write_config(EEADR_MENU_ITEM(SP), profile_next_step_sp);
+        // Is this the last step (next step is number 9 or next step duration is 0)?
+        if ((curr_step == NO_OF_TT_PAIRS-1) || eeprom_read_config(profile_step_eeaddr + 3) == 0) 
+        {   // Switch to thermostat mode.
+            eeprom_write_config(EEADR_MENU_ITEM(rn), THERMOSTAT_MODE);
+            return; // Fastest way out...
+        } // if
+        curr_dur = 0; // Reset duration
+        curr_step++;  // Update step
+        eeprom_write_config(EEADR_MENU_ITEM(St), curr_step);
       } // if
       else if (eeprom_read_config(EEADR_MENU_ITEM(rP))) 
       {  // Is ramping enabled?
          profile_step_sp = eeprom_read_config(profile_step_eeaddr);
-	 t  = curr_dur << 6;
-	 sp = 32;
-	 for (i = 0; i < 64; i++) 
+         t  = curr_dur << 6;
+         sp = 32;
+         for (i = 0; i < 64; i++) 
          {   // Linear interpolation of new setpoint (64 substeps)
-	     if (t >= profile_step_dur) 
+             if (t >= profile_step_dur) 
              {
-	        t  -= profile_step_dur;
-		sp += profile_next_step_sp;
-	     } // if
+                t  -= profile_step_dur;
+                sp += profile_next_step_sp;
+             } // if
              else 
              {
-		sp += profile_step_sp;
-	     } // else
-	 } // for
-	 sp >>= 6;
-	 // Update setpoint
-	 if (minutes) // is timing-control in minutes?
+                sp += profile_step_sp;
+             } // else
+         } // for
+         sp >>= 6;
+         // Update setpoint
+         if (minutes) // is timing-control in minutes?
               setpoint = sp;
          else eeprom_write_config(EEADR_MENU_ITEM(SP), sp);
       } // else if
@@ -320,55 +334,55 @@ int16_t check_config_value(int16_t config_value, uint8_t eeadr)
     
     if (eeadr < EEADR_MENU)
     {   // One of the Profiles
-	while (eeadr >= PROFILE_SIZE)
+        while (eeadr >= PROFILE_SIZE)
         {   // Find the eeprom address within a profile
             eeadr -= PROFILE_SIZE;
-	} // while
-	if (!(eeadr & 0x1))
-        {   // Only constrain a temperature
-	    t_min = (fahrenheit ? TEMP_MIN_F : TEMP_MIN_C);
-	    t_max = (fahrenheit ? TEMP_MAX_F : TEMP_MAX_C);
-	} // if
-    } else { // Parameter menu
-        type = menu[eeadr - EEADR_MENU].type;
-	if (type == t_temperature)
+        } // while
+        if (!(eeadr & 0x1))
+            {   // Only constrain a temperature
+            t_min = (fahrenheit ? TEMP_MIN_F : TEMP_MIN_C);
+            t_max = (fahrenheit ? TEMP_MAX_F : TEMP_MAX_C);
+        } // if
+        } else { // Parameter menu
+            type = menu[eeadr - EEADR_MENU].type;
+        if (type == t_temperature)
+            {
+            t_min = (fahrenheit ? TEMP_MIN_F : TEMP_MIN_C);
+            t_max = (fahrenheit ? TEMP_MAX_F : TEMP_MAX_C);
+        } else if (type == t_tempdiff)
+            {   // the temperature correction variables
+            t_min = (fahrenheit ? TEMP_CORR_MIN_F : TEMP_CORR_MIN_C);
+            t_max = (fahrenheit ? TEMP_CORR_MAX_F : TEMP_CORR_MAX_C);
+        } else if (type == t_parameter)
         {
-	    t_min = (fahrenheit ? TEMP_MIN_F : TEMP_MIN_C);
-	    t_max = (fahrenheit ? TEMP_MAX_F : TEMP_MAX_C);
-	} else if (type == t_tempdiff)
-        {   // the temperature correction variables
-	    t_min = (fahrenheit ? TEMP_CORR_MIN_F : TEMP_CORR_MIN_C);
-	    t_max = (fahrenheit ? TEMP_CORR_MAX_F : TEMP_CORR_MAX_C);
-	} else if (type == t_parameter)
-	    {
-		t_max = 9999;
-                if (eeadr == EEADR_MENU_ITEM(Hc)) 
-                {   // Kc parameter for PID: enable heating and cooling-loop
-                    t_min = -9999; 
-                } // if
-	} else if (type == t_boolean)
-        {   // the control variables
-	    t_max = 1;
-	} else if (type == t_hyst_1)
+            t_max = 9999;
+            if (eeadr == EEADR_MENU_ITEM(Hc)) 
+            {   // Kc parameter for PID: enable heating and cooling-loop
+                t_min = -9999; 
+            } // if
+        } else if (type == t_boolean)
+            {   // the control variables
+            t_max = 1;
+        } else if (type == t_hyst_1)
+            {
+            t_max = (fahrenheit ? TEMP_HYST_1_MAX_F : TEMP_HYST_1_MAX_C);
+        } else if (type == t_hyst_2)
+            {
+            t_max = (fahrenheit ? TEMP_HYST_2_MAX_F : TEMP_HYST_2_MAX_C);
+        } else if (type == t_sp_alarm)
+            {
+            t_min = (fahrenheit ? SP_ALARM_MIN_F : SP_ALARM_MIN_C);
+            t_max = (fahrenheit ? SP_ALARM_MAX_F : SP_ALARM_MAX_C);
+        } else if(type == t_step)
+            {
+            t_max = NO_OF_TT_PAIRS;
+        } else if (type == t_delay)
+            {
+            t_max = 60;
+        } else if (type == t_runmode)
         {
-	    t_max = (fahrenheit ? TEMP_HYST_1_MAX_F : TEMP_HYST_1_MAX_C);
-	} else if (type == t_hyst_2)
-        {
-	    t_max = (fahrenheit ? TEMP_HYST_2_MAX_F : TEMP_HYST_2_MAX_C);
-	} else if (type == t_sp_alarm)
-        {
-	    t_min = (fahrenheit ? SP_ALARM_MIN_F : SP_ALARM_MIN_C);
-	    t_max = (fahrenheit ? SP_ALARM_MAX_F : SP_ALARM_MAX_C);
-	} else if(type == t_step)
-        {
-	    t_max = NO_OF_TT_PAIRS;
-	} else if (type == t_delay)
-        {
-	    t_max = 60;
-	} else if (type == t_runmode)
-        {
-	    t_max = NO_OF_PROFILES;
-	} // else if
+            t_max = NO_OF_PROFILES;
+        } // else if
     } // else
     return range(config_value, t_min, t_max);
 } // check_config_value()
@@ -392,7 +406,6 @@ void read_buttons(void)
     PD_ODR |= PORTD_OUT;          // disable all other 7-segment displays
     hc164_state = hc164_val;      // save current hc164_val
     set_hc164(0x00);
-    //i = (PB_IDR & KEYS); // dummy read, should read 0
     for (i = 0x88; i > 0x0F; i >>= 1)
     {  // Read UP, DOWN, LEFT, S keys
        set_hc164(i);
@@ -401,11 +414,6 @@ void read_buttons(void)
        if (PC_IDR & KEYS) _buttons |= 0x01;
        set_hc164(0x00);
     } // for i
-    top_100 = top_10 = top_1 = top_01 = LED_0;
-    if (_buttons & 0x08) top_100 = LED_S;
-    if (_buttons & 0x04) top_10  = LED_L;
-    if (_buttons & 0x02) top_1   = LED_d;
-    if (_buttons & 0x01) top_01  = LED_u;
     
     // Restore registers that interferes with keys
     set_hc164(hc164_state); // restore HC164 state
@@ -431,32 +439,34 @@ void menu_fsm(void)
     
    switch (menustate)
    {
-       //--------------------------------------------------------------------         
-       case MENU_IDLE:
-	    if(BTN_PRESSED(BTN_PWR))
+        //--------------------------------------------------------------------         
+        case MENU_IDLE:
+            leds_out &= ~LED_ALM2;
+            pwr_on = eeprom_read_config(EEADR_POWER_ON);
+            if (BTN_PRESSED(BTN_LEFT))
             {
                 m_countdown = TMR_POWERDOWN;
                 menustate   = MENU_POWER_DOWN_WAIT;
-	    } else if(_buttons && eeprom_read_config(EEADR_POWER_ON))
+            } else if (!pwr_on)
             {
-                if (BTN_PRESSED(BTN_UP | BTN_DOWN)) 
-                {   // UP and DOWN button pressed
-                    menustate = MENU_SHOW_VERSION;
-                } else if(BTN_PRESSED(BTN_UP))
+                leds_out = 0x00;
+            } else if (_buttons)
+            {
+                if (BTN_PRESSED(BTN_UP))
                 {   // UP button pressed
-                    menustate = MENU_SHOW_STATE_UP;
-                } else if(BTN_PRESSED(BTN_DOWN))
+                    menustate = MENU_SHOW_VERSION;
+                } else if (BTN_PRESSED(BTN_DOWN))
                 {   // DOWN button pressed
                     m_countdown = TMR_SHOW_PROFILE_ITEM;
                     menustate   = MENU_SHOW_STATE_DOWN;
-                } else if(BTN_RELEASED(BTN_S))
+                } else if (BTN_RELEASED(BTN_SET))
                 {   // S button pressed
                     menustate = MENU_SHOW_MENU_ITEM;
                 } // else if
-	    } // else
+            } // else
 	    break;
-       //--------------------------------------------------------------------         
-       case MENU_POWER_DOWN_WAIT:
+        //--------------------------------------------------------------------         
+        case MENU_POWER_DOWN_WAIT:
             if (m_countdown == 0)
             {
                 pwr_on = eeprom_read_config(EEADR_POWER_ON);
@@ -466,74 +476,83 @@ void menu_fsm(void)
                 {
                     heating_delay = 60; // 60 sec.
                     cooling_delay = 60; // 60 sec.
-                } // else
+                    eeprom_write_config(EEADR_MENU_ITEM(St), 0);
+                    curr_dur = 0;
+                    eeprom_write_config(EEADR_MENU_ITEM(dh), curr_dur);
+                } // if
                 menustate = MENU_IDLE;
-            } else if(!BTN_HELD(BTN_PWR))
+            } else if(!BTN_HELD(BTN_LEFT))
             {   // 0 = temp_ntc1, 1 = temp_ntc2, 2 = pid-output
                 if (++sensor2_selected > 1 + (ts > 0)) sensor2_selected = 0;
                 menustate = MENU_IDLE;
             } // else if
-            break; // MENU_POWER_DOWN_WAIT
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_VERSION: // Show STC1000p version number
-            value_to_led(STC1000P_VERSION,LEDS_INT);
-	    led_10 |= LED_DECIMAL;
-            led_1  |= LED_DECIMAL;
-	    led_e  &= ~(LED_DEGR | LED_CELS); // clear ° and Celsius symbols
-	    if(!BTN_HELD(BTN_UP | BTN_DOWN)) menustate = MENU_IDLE;
+        break; // MENU_POWER_DOWN_WAIT
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_VERSION: // Show STC1000p version number
+            top_100 = LED_S; top_10 = LED_u; top_1 = LED_E; top_01 = LED_r;
+            value_to_led(STC1000P_VERSION,LEDS_INT, ROW_BOT);
+            bot_10 |= LED_DP; bot_1  |= LED_DP;
+            if(!BTN_HELD(BTN_UP)) menustate = MENU_IDLE;
 	    break;
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_STATE_UP: // Show setpoint value
-	    if (minutes) // is timing-control in minutes?
-                 value_to_led(setpoint,LEDS_TEMP);
-	    else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(SP)),LEDS_TEMP);
-	    if(!BTN_HELD(BTN_UP)) menustate = MENU_IDLE;
-	    break;
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_STATE_DOWN: // Show Profile-number
-	    run_mode = eeprom_read_config(EEADR_MENU_ITEM(rn));
-            prx_to_led(run_mode,LEDS_RUN_MODE);
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_STATE_DOWN: // Show Profile-number
+            run_mode = eeprom_read_config(EEADR_MENU_ITEM(rn));
+            top_100 = LED_OFF; top_10 = LED_r; top_1 = LED_u; top_01 = LED_n;
+            prx_to_led(run_mode); // display run_mode on bottom row
             if ((run_mode < THERMOSTAT_MODE) && (m_countdown == 0))
             {
                 m_countdown = TMR_SHOW_PROFILE_ITEM;
                 menustate   = MENU_SHOW_STATE_DOWN_2;
             } // if
-	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
+            if (!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
 	    break;
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_STATE_DOWN_2: // Show current step number within profile
-	    value_to_led(eeprom_read_config(EEADR_MENU_ITEM(St)),LEDS_INT);
-	    if(m_countdown == 0)
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_STATE_DOWN_2: // Show current step number within profile
+            top_10  = LED_S; top_1 = LED_t; 
+            top_100 = top_01 = LED_OFF;
+            value_to_led(eeprom_read_config(EEADR_MENU_ITEM(St)),LEDS_INT, ROW_BOT);
+            if (m_countdown == 0)
             {
                 m_countdown = TMR_SHOW_PROFILE_ITEM;
                 menustate   = MENU_SHOW_STATE_DOWN_3;
-	    }
-	    if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
+            }
+            if(!BTN_HELD(BTN_DOWN)) menustate = MENU_IDLE;
 	    break;
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_STATE_DOWN_3: // Show current duration of running profile
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_STATE_DOWN_3: // Show current duration of running profile
+            top_10  = LED_d; top_1 = LED_h; 
+            top_100 = top_01 = LED_OFF;
             if (minutes) // is timing-control in minutes?
-                 value_to_led(curr_dur,LEDS_INT);
-            else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(dh)),LEDS_INT);
-            if(m_countdown == 0)
+                 value_to_led(curr_dur,LEDS_INT, ROW_BOT);
+            else value_to_led(eeprom_read_config(EEADR_MENU_ITEM(dh)),LEDS_INT,ROW_BOT);
+            if (m_countdown == 0)
             {   // Time-Out
                 m_countdown = TMR_SHOW_PROFILE_ITEM;
                 menustate   = MENU_SHOW_STATE_DOWN;
             } // if
-            if(!BTN_HELD(BTN_DOWN))
+            if (!BTN_HELD(BTN_DOWN))
             {   // Down button is released again
                 menustate = MENU_IDLE;
             } // if
-            break; // MENU_SHOW_STATE_DOWN_3
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_MENU_ITEM: // S-button was pressed
-            prx_to_led(menu_item, LEDS_MENU);
+        break; // MENU_SHOW_STATE_DOWN_3
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_MENU_ITEM: // S-button was pressed
+            top_100 = LED_S;   top_10  = LED_E; top_1 = LED_t; 
+            top_01  = bot_01 = LED_OFF; bot_100 = LED_P;
+            if (menu_item < NO_OF_PROFILES)
+            {   // one of the profiles
+                bot_10 = LED_r;
+                bot_1  = led_lookup[menu_item];
+            } else {
+                bot_10 = LED_A;
+                bot_1  = LED_r;
+            } // else
             m_countdown = TMR_NO_KEY_TIMEOUT;
             menustate   = MENU_SET_MENU_ITEM;
-            break; // MENU_SHOW_MENU_ITEM
-       //--------------------------------------------------------------------         
-       case MENU_SET_MENU_ITEM:
-            if(m_countdown == 0 || BTN_RELEASED(BTN_PWR))
+        break; // MENU_SHOW_MENU_ITEM
+        //--------------------------------------------------------------------         
+        case MENU_SET_MENU_ITEM:
+            if (m_countdown == 0 || BTN_RELEASED(BTN_LEFT))
             {   // On Time-out of S-button released, go back
                 menustate = MENU_IDLE;
             } else if(BTN_RELEASED(BTN_UP))
@@ -544,127 +563,137 @@ void menu_fsm(void)
             {
                 if(--menu_item > MENU_ITEM_NO) menu_item = MENU_ITEM_NO;
                 menustate = MENU_SHOW_MENU_ITEM;
-            } else if(BTN_RELEASED(BTN_S))
+            } else if(BTN_RELEASED(BTN_SET))
             {   // only go to next state if S-button is released
                 config_item = 0;
                 menustate   = MENU_SHOW_CONFIG_ITEM;
             } // else if
-            break; // MENU_SET_MENU_ITEM
-       //--------------------------------------------------------------------         
-       case MENU_SHOW_CONFIG_ITEM: // S-button is released
-	    led_e &= ~(LED_NEG | LED_DEGR | LED_CELS); // clear negative, ° and Celsius symbols
-
-	    if(menu_item < MENU_ITEM_NO)
+        break; // MENU_SET_MENU_ITEM
+        //--------------------------------------------------------------------         
+        case MENU_SHOW_CONFIG_ITEM: // S-button is released
+            if (menu_item < MENU_ITEM_NO)
             {
                 if(config_item & 0x1) 
                 {   
-                    led_10 = LED_d; // duration: 2nd value of a profile-step
-                    led_1  = LED_h;
+                    top_100 = LED_d; // duration: 2nd value of a profile-step
+                    top_10  = LED_h;
                 } else {
-                    led_10 = LED_S; // setpoint: 1st value of a profile-step
-                    led_1  = LED_P;
+                    top_100 = LED_S; // setpoint: 1st value of a profile-step
+                    top_10  = LED_P;
                 } // else
-                led_01 = led_lookup[(config_item >> 1)];
-	    } else /* if (menu_item == 6) */
+                top_1  = led_lookup[menu_item];
+                top_01 = led_lookup[(config_item >> 1)];
+            } else /* if (menu_item == 6) */
             {   // show parameter name
-                led_10 = menu[config_item].led_c_10;
-                led_1  = menu[config_item].led_c_1;
-                led_01 = menu[config_item].led_c_01;
-	    } // else
-	    m_countdown = TMR_NO_KEY_TIMEOUT;
-	    menustate   = MENU_SET_CONFIG_ITEM;
-	    break;
-       //--------------------------------------------------------------------         
-       case MENU_SET_CONFIG_ITEM:
-	    if(m_countdown == 0)
+                top_100 = LED_OFF;
+                top_10  = menu[config_item].led_c_10;
+                top_1   = menu[config_item].led_c_1;
+                top_01  = menu[config_item].led_c_01;
+            } // else
+            adr          = MI_CI_TO_EEADR(menu_item, config_item);
+            config_value = eeprom_read_config(adr);
+            config_value = check_config_value(config_value, adr);
+            m_countdown  = TMR_NO_KEY_TIMEOUT;
+            ret_state    = MENU_SET_CONFIG_ITEM;  // return state
+            menustate    = MENU_SHOW_CONFIG_VALUE; // display config value
+            break;
+        //--------------------------------------------------------------------         
+        case MENU_SET_CONFIG_ITEM:
+            leds_out = LED_ALM2;
+            if (m_countdown == 0)
             {   // Timeout, go back to idle state
-                menustate = MENU_IDLE;
-	    } else if(BTN_RELEASED(BTN_PWR))
+                    menustate = MENU_IDLE;
+            } else if (BTN_RELEASED(BTN_LEFT))
             {   // Go back
                 menustate = MENU_SHOW_MENU_ITEM;
-            } else if(BTN_RELEASED(BTN_UP))
+            } else if (BTN_RELEASED(BTN_UP))
             {
                 config_item++;
-                if(menu_item < MENU_ITEM_NO)
+                if (menu_item < MENU_ITEM_NO)
                 {
-                    if(config_item >= PROFILE_SIZE)
+                    if (config_item >= PROFILE_SIZE)
                     {
                         config_item = 0;
                     } // if
                 } else {
-                    if(config_item >= MENU_SIZE)
+                    if (config_item >= MENU_SIZE)
                     {
                         config_item = 0;
                     }
-                    /* Jump to exit code shared with BTN_DOWN case */
-                    /* GOTO's are frowned upon, but avoiding code duplication saves precious code space */
+                    // Jump to exit code shared with BTN_DOWN case
+                    // GOTO's are frowned upon, but avoiding code 
+                    // duplication saves precious code space
                     goto chk_skip_menu_item;
                 } // else
-                menustate = MENU_SHOW_CONFIG_ITEM;
+                ret_state = MENU_SHOW_CONFIG_ITEM;  // return state
+                menustate = MENU_SHOW_CONFIG_VALUE; // display config value
             } else if(BTN_RELEASED(BTN_DOWN))
             {
                 config_item--;
                 if(menu_item < MENU_ITEM_NO)
                 {   // One of the profiles
-                    if(config_item >= PROFILE_SIZE)
+                    if (config_item >= PROFILE_SIZE)
                     {
                         config_item = PROFILE_SIZE-1;
                     } // if
                 } else { // Menu with parameters
-                    if(config_item > MENU_SIZE-1)
+                    if (config_item > MENU_SIZE-1)
                     {
                         config_item = MENU_SIZE-1;
                     } // if
-            chk_skip_menu_item: // label for goto
+                    chk_skip_menu_item: // label for goto
                     if (!minutes && ((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn)) >= THERMOSTAT_MODE))
                     {
                         if (config_item == St)
                         {   // Skip current profile-step and duration
                             config_item += 2;
-                        }else if (config_item == dh)
+                        } 
+                        else if (config_item == dh)
                         {   // Skip current profile-step and duration
                             config_item -= 2;
                         } // else if
                     } // if
                 } // else
-                menustate = MENU_SHOW_CONFIG_ITEM;
-            } else if(BTN_RELEASED(BTN_S))
+                ret_state = MENU_SHOW_CONFIG_ITEM;  // return to this state
+                menustate = MENU_SHOW_CONFIG_VALUE; // display config value
+            } else if(BTN_RELEASED(BTN_SET))
             {   // S-button is released again
-                adr          = MI_CI_TO_EEADR(menu_item, config_item);
-                config_value = eeprom_read_config(adr);
-                config_value = check_config_value(config_value, adr);
                 m_countdown  = TMR_NO_KEY_TIMEOUT;
-                menustate    = MENU_SHOW_CONFIG_VALUE;
+                menustate    = MENU_SET_CONFIG_VALUE;  // display config value
             } // else if
+            adr          = MI_CI_TO_EEADR(menu_item, config_item);
+            config_value = eeprom_read_config(adr);
+            config_value = check_config_value(config_value, adr);
        break; // MENU_SET_CONFIG_ITEM
        //--------------------------------------------------------------------         
        case MENU_SHOW_CONFIG_VALUE:
             if(menu_item < MENU_ITEM_NO)
             {   // Display duration as integer, temperature in 0.1
-                value_to_led(config_value, (config_item & 0x1) ? LEDS_INT : LEDS_TEMP);
+                value_to_led(config_value, (config_item & 0x1) ? LEDS_INT : LEDS_TEMP, ROW_BOT);
             } else 
             {   // menu_item == MENU_ITEM_NO
                 type = menu[config_item].type;
                 if(MENU_TYPE_IS_TEMPERATURE(type))
                 {   // temperature, display in 0.1
-                    value_to_led(config_value,LEDS_TEMP);
+                    value_to_led(config_value,LEDS_TEMP, ROW_BOT);
                 } else if (type == t_runmode)
                 {
-                    prx_to_led(config_value,LEDS_RUN_MODE);
+                    prx_to_led(config_value);
                 } else { // others, display as integer
-                    value_to_led(config_value,LEDS_INT);
+                    value_to_led(config_value,LEDS_INT, ROW_BOT);
                 } // else
             } // else
             m_countdown  = TMR_NO_KEY_TIMEOUT;
-            menustate    = MENU_SET_CONFIG_VALUE;
+            menustate    = ret_state; // return to indicated state
             break;
        //--------------------------------------------------------------------         
        case MENU_SET_CONFIG_VALUE:
+            leds_out = LED_ALM2 | LED_ALM2_BLINK;
             adr = MI_CI_TO_EEADR(menu_item, config_item);
             if (m_countdown == 0)
             {
                 menustate = MENU_IDLE;
-            } else if (BTN_RELEASED(BTN_PWR))
+            } else if (BTN_RELEASED(BTN_LEFT))
             {
                 menustate = MENU_SHOW_CONFIG_ITEM;
             } else if(BTN_HELD_OR_RELEASED(BTN_UP)) 
@@ -685,18 +714,19 @@ void menu_fsm(void)
                 } // if
             chk_cfg_acc_label: // label for goto
                 config_value = check_config_value(config_value, adr);
-                menustate    = MENU_SHOW_CONFIG_VALUE;
-            } else if(BTN_RELEASED(BTN_S))
+                ret_state    = MENU_SET_CONFIG_VALUE;  // return to this state
+                menustate    = MENU_SHOW_CONFIG_VALUE; // show config_value
+            } else if(BTN_RELEASED(BTN_SET))
             {
-                if(menu_item == MENU_ITEM_NO)
+                if (menu_item == MENU_ITEM_NO)
                 {   // We are in the parameter menu
-                    if(config_item == rn)
+                    if (config_item == rn)
                     {   // When setting run-mode, clear current step & duration
                         eeprom_write_config(EEADR_MENU_ITEM(St), 0);
                         if (minutes)
                              curr_dur = 0;
                         else eeprom_write_config(EEADR_MENU_ITEM(dh), 0);
-                        if(config_value < THERMOSTAT_MODE)
+                        if (config_value < THERMOSTAT_MODE)
                         {
                             eeadr_sp = EEADR_PROFILE_SETPOINT(((uint8_t)config_value), 0);
                             // Set initial value for SP
@@ -708,7 +738,7 @@ void menu_fsm(void)
                                 eeprom_write_config(EEADR_MENU_ITEM(SP), eeprom_read_config(eeadr_sp));
                             } // else if
                             // Hack in case inital step duration is '0'
-                            if(eeprom_read_config(eeadr_sp+1) == 0)
+                            if (eeprom_read_config(eeadr_sp+1) == 0)
                             {   // Set to thermostat mode
                                 config_value = THERMOSTAT_MODE;
                             } // if
@@ -758,6 +788,17 @@ void init_temp_delays(void)
     if (cooling_delay) cooling_delay--;
     if (heating_delay) heating_delay--;
 } // init_temp_delays()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This routine controls the temperature setpoints. It should be 
+             called once every second by ctrl_task().
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void temperature_control(void)
+{
+    init_temp_delays();  // Initialise Heating and Cooling delay
+} // temperature_control()
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine controls the PID controller. It should be 

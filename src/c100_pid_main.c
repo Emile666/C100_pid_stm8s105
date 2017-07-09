@@ -27,27 +27,37 @@
 #include "stc1000p_lib.h"
 #include "scheduler.h"
 
-long delay_val = 100000;
-int  irq_cnt   = 0;
-
 // Global variables
-bool      probe2 = false;        // cached flag indicating whether 2nd probe is active
+bool      ad_err1 = false; // used for adc range checking
+bool      ad_err2 = false; // used for adc range checking
+bool      probe2  = false; // cached flag indicating whether 2nd probe is active
+bool      show_sa_alarm = false; // true = display alarm
+bool      sound_alarm   = false; // true = sound alarm
 uint16_t  leds_out;              // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
 int16_t   temp_ntc1;             // The temperature in E-1 °C from NTC probe 1
 int16_t   temp_ntc2;             // The temperature in E-1 °C from NTC probe 2
 uint8_t   mpx_nr = 0;            // Used in multiplexer() function
 int16_t   pwr_on_tmr = 1000;     // Needed for 7-segment display test
-uint8_t   top_100,top_10,top_1, top_01;
 uint8_t   hc164_val;
 
 uint8_t std[4] = {STD_LED_OFF, STD_LED_OFF, STD_LED_OFF, STD_LED_OFF};
 uint8_t blink_tmr[4];
 
 // External variables, defined in other files
-extern int16_t  @eeprom eedata[];     // Link to .eeprom section
-extern uint8_t led_e;                 // value of extra LEDs
-extern uint8_t led_10, led_1, led_01; // values of 10s, 1s and 0.1s
-extern bool    pwr_on;                // True = power ON, False = power OFF
+extern int16_t  @eeprom eedata[];                // Link to .eeprom section
+extern uint8_t  top_100, top_10, top_1, top_01;  // 7-segments top row: 100s, 10s, 1s and 0.1s
+extern uint8_t  bot_100, bot_10, bot_1, bot_01;  // 7-segments bottom row: 100s, 10s, 1s and 0.1s
+extern bool     pwr_on;                          // True = power ON, False = power OFF
+extern uint8_t  sensor2_selected; // DOWN button pressed < 3 sec. shows 2nd temperature / pid_output
+extern bool     minutes;          // timing control: false = hours, true = minutes
+extern bool     menu_is_idle;     // No menus in STD active
+extern bool     fahrenheit;       // false = Celsius, true = Fahrenheit
+extern uint16_t cooling_delay;   // Initial cooling delay
+extern uint16_t heating_delay;   // Initial heating delay
+extern int16_t  setpoint;        // local copy of SP variable
+extern int16_t  kc;              // Parameter value for Kc value in %/°C
+extern uint8_t  ts;              // Parameter value for sample time [sec.]
+extern int16_t  pid_out;         // Output from PID controller in E-1 %
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine sets the HC164 shiftregister to a value x.
@@ -158,26 +168,26 @@ void multiplexer(void)
     {
         case 0: // output CA1 BOTTOM display (LSB)
             set_hc164(0x01);
-            PE_ODR &= ~PE_LEDS(led_e);   // Update PE0 (SEG7_C)
-            PD_ODR &= ~PD_LEDS(led_e);   // Update all other segments
+            PE_ODR &= ~PE_LEDS(bot_01);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(bot_01);   // Update all other segments
             mpx_nr = 1;
             break;
         case 1: // output CA2 BOTTOM display
             set_hc164(0x02);
-            PE_ODR &= ~PE_LEDS(led_01);  // Update PE0 (SEG7_C)
-            PD_ODR &= ~PD_LEDS(led_01);  // Update all other segments
+            PE_ODR &= ~PE_LEDS(bot_1);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(bot_1);   // Update all other segments
             mpx_nr = 2;
             break;
         case 2: // output CA3 BOTTOM display
             set_hc164(0x04);
-            PE_ODR &= ~PE_LEDS(led_1);   // Update PE0 (SEG7_C)
-            PD_ODR &= ~PD_LEDS(led_1);   // Update all other segments
+            PE_ODR &= ~PE_LEDS(bot_10);   // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(bot_10);   // Update all other segments
             mpx_nr = 3;
             break;
         case 3: // outputs CA4 BOTTOM display (MSB)
             set_hc164(0x08);
-            PE_ODR &= ~PE_LEDS(led_10);  // Update PE0 (SEG7_C)
-            PD_ODR &= ~PD_LEDS(led_10);  // Update all other segments
+            PE_ODR &= ~PE_LEDS(bot_100);  // Update PE0 (SEG7_C)
+            PD_ODR &= ~PD_LEDS(bot_100);  // Update all other segments
             mpx_nr = 4;
             break;
         case 4: // set Frontpanel LEDs
@@ -229,15 +239,16 @@ void multiplexer(void)
     scheduler_isr();  // Run scheduler interrupt function
     if (!pwr_on)
     {   // Display OFF on dispay
-        led_10     = LED_O;
-        led_1      = led_01 = LED_F;
-        led_e      = LED_OFF;
+        top_100    = top_10 = top_1 = top_01 = bot_01 = LED_OFF;
+        bot_100    = LED_O; 
+        bot_10     = bot_1 = LED_F;
         pwr_on_tmr = 2000; // 2 seconds
     } // if
     else if (pwr_on_tmr > 0)
     {	// 7-segment display test for 2 seconds
         pwr_on_tmr--;
-        led_10 = led_1 = led_01 = led_e = LED_ON;
+        top_100 = LED_C; top_10 = LED_1; top_1 = top_01 = LED_0;
+        bot_100 = LED_P; bot_10 = LED_I; bot_1 = LED_d; bot_01 = LED_c;
     } // else if
     multiplexer();             // Run multiplexer for Display and Keys
     TIM2_SR1 &= ~TIM2_SR1_UIF; // Reset interrupt (UIF bit) so it will not fire again straight away.
@@ -312,6 +323,16 @@ void setup_gpio_ports(void)
 } // setup_gpio_ports()
 
 /*-----------------------------------------------------------------------------
+  Purpose  : This task is called every 500 msec. and processes the NTC 
+             temperature probes from NTC1 (PD3/AIN4) and NTC2 (PD2/AIN3)
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void adc_task(void)
+{
+} // adc_task()
+
+/*-----------------------------------------------------------------------------
   Purpose  : This task is called every 100 msec. and reads the buttons, runs
              the STD and updates the 7-segment display.
   Variables: -
@@ -323,6 +344,119 @@ void std_task(void)
     menu_fsm();     // Finite State Machine menu
     //pid_to_time();  // Make Slow-PWM signal and send to S3 output-port
 } // std_task()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This task is called every second and contains the main control
+             task for the device. It also calls temperature_control().
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void ctrl_task(void)
+{
+   int16_t sa, diff;
+   
+    if (eeprom_read_config(EEADR_MENU_ITEM(CF))) // true = Fahrenheit
+         fahrenheit = true;
+    else fahrenheit = false;
+    if (eeprom_read_config(EEADR_MENU_ITEM(HrS))) // true = hours
+         minutes = false; // control-timing is in hours 
+    else minutes = true;  // control-timing is in minutes
+
+   // Start with updating the alarm
+   // cache whether the 2nd probe is enabled or not.
+      if (eeprom_read_config(EEADR_MENU_ITEM(Pb2))) 
+        probe2 = true;
+   else probe2 = false;
+   if (ad_err1 || (ad_err2 && probe2))
+   {
+       sound_alarm = true;
+       if (menu_is_idle)
+       {  // Make it less anoying to nagivate menu during alarm
+          top_100 = LED_A;
+          top_10  = LED_L;
+          top_1   = LED_S; // sensor not connected alarm
+          if (ad_err1) top_01 = LED_1;
+          else         top_01 = LED_2;
+       } // if
+       cooling_delay = heating_delay = 60;
+   } else {
+       sound_alarm = false; // reset the piezo buzzer
+       if(((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn))) < THERMOSTAT_MODE)
+            leds_out |=  (LED_AT | LED_AT_BLINK); // Indicate profile mode
+       else leds_out &= ~(LED_AT | LED_AT_BLINK);
+ 
+       ts = eeprom_read_config(EEADR_MENU_ITEM(Ts)); // Read Ts [seconds]
+       sa = eeprom_read_config(EEADR_MENU_ITEM(SA)); // Show Alarm parameter
+       if (sa)
+       {
+            if (minutes) // is timing-control in minutes?
+                 diff = temp_ntc1 - setpoint;
+            else diff = temp_ntc1 - eeprom_read_config(EEADR_MENU_ITEM(SP));
+            if (diff < 0) 
+                 diff = -diff;
+            if (sa < 0)
+            {
+                 sa = -sa;
+                 sound_alarm = (diff <= sa); // enable buzzer if diff is small
+            } else {
+                 sound_alarm = (diff >= sa); // enable buzzer if diff is large
+            } // if
+       } // if
+       if (ts == 0)                // PID Ts parameter is 0?
+       {
+           temperature_control();  // Run thermostat
+           pid_out = 0;            // Disable PID-output
+       } // if
+       else 
+       {
+           pid_control();          // Run PID controller
+       } // else
+       if (menu_is_idle)           // show temperature if menu is idle
+       {
+           if (sound_alarm && show_sa_alarm)
+           {
+                top_100 = LED_A;
+                top_10  = LED_L;
+                top_1   = LED_d;
+           } else {
+               value_to_led(setpoint,LEDS_TEMP, ROW_BOT); // display setpoint on top-row
+               switch (sensor2_selected)
+               {
+                   case 0: value_to_led(temp_ntc1,LEDS_TEMP,ROW_TOP); 
+                           break;
+                   case 1: value_to_led(temp_ntc2,LEDS_TEMP,ROW_TOP); 
+                           break;
+                   case 2: value_to_led(pid_out  ,LEDS_INT,ROW_TOP); 
+                           break;
+               } // switch
+           } // else
+           show_sa_alarm = !show_sa_alarm;
+       } // if
+   } // else
+} // ctrl_task()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This task is called every minute or every hour and updates the
+             current running temperature profile.
+  Variables: minutes: timing control: false = hours, true = minutes
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void prfl_task(void)
+{
+    static uint8_t min = 0;
+    
+    if (minutes)
+    {   // call every minute
+        update_profile();
+        min = 0;
+    } else {
+        if (++min >= 60)
+        {   // call every hour
+            min = 0;
+            update_profile(); 
+        } // if
+    } // else
+} // prfl_task();
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine initialises the system clock to run at 16 MHz.
@@ -367,14 +501,12 @@ int main(void)
 
 	// Initialise all tasks for the scheduler
     scheduler_init();                    // init. task scheduler
+    add_task(adc_task ,"ADC",  0,  500); // every 500 msec.
     add_task(std_task ,"STD", 50,  100); // every 100 msec.
+    add_task(ctrl_task,"CTL",200, 1000); // every second
+    add_task(prfl_task,"PRF",300,60000); // every minute / hour
 	enable_interrupts();                 // enable interrupts
 
-    // Just for testing...
-    leds_out  = LED_ALM1 | LED_OUT1 | LED_AT;
-    leds_out |= LED_ALM1_BLINK | LED_AT_BLINK;
-    leds_out |= LED_ALM1_BLINK_FAST;
-    
 	while (1)
 	{ 	// background-processes
         dispatch_tasks();     // Run task-scheduler()
