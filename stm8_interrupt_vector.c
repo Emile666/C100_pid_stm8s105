@@ -19,6 +19,7 @@ struct interrupt_vector {
 
 extern void _stext();     /* startup routine */
 extern void TIM2_UPD_OVF_IRQHandler();
+extern void SPI_Handler();
 
 struct interrupt_vector const _vectab[] = {
 	{0x82, (interrupt_handler_t)_stext}, /* reset */
@@ -33,7 +34,7 @@ struct interrupt_vector const _vectab[] = {
 	{0x82, NonHandledInterrupt}, /* irq7  */
 	{0x82, NonHandledInterrupt}, /* irq8  */
 	{0x82, NonHandledInterrupt}, /* irq9  */
-	{0x82, NonHandledInterrupt}, /* irq10 */
+	{0x82, (interrupt_handler_t)SPI_Handler}, /* irq10 */
 	{0x82, NonHandledInterrupt}, /* irq11 */
 	{0x82, NonHandledInterrupt}, /* irq12 */
 	{0x82, (interrupt_handler_t)TIM2_UPD_OVF_IRQHandler}, /* irq13 */

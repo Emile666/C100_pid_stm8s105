@@ -26,18 +26,17 @@
 #include "delay.h"
 #include "stc1000p_lib.h"
 #include "scheduler.h"
+#include "spi.h"
 
 // Global variables
-bool      ad_err1 = false; // used for adc range checking
-bool      ad_err2 = false; // used for adc range checking
-bool      probe2  = false; // cached flag indicating whether 2nd probe is active
-bool      show_sa_alarm = false; // true = display alarm
-bool      sound_alarm   = false; // true = sound alarm
-uint16_t  leds_out;              // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
-int16_t   temp_ntc1;             // The temperature in E-1 °C from NTC probe 1
-int16_t   temp_ntc2;             // The temperature in E-1 °C from NTC probe 2
-uint8_t   mpx_nr = 0;            // Used in multiplexer() function
-int16_t   pwr_on_tmr = 1000;     // Needed for 7-segment display test
+bool      relay_alarm1  = false;   // true = sound alarm
+uint16_t  leds_out;                // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
+int16_t   temp_tc_pt;              // Temperature in E-1 °C from TC or PT100
+int32_t   temp_tc_fil = TEMP_ROOM; // Filtered temperature in E-1 °C from TC
+int32_t   temp_pt_fil = TEMP_ROOM; // Filtered temperature in E-1 °C from PT100
+bool      temp_err = false;        // 1 = no temperature sensor present
+uint8_t   mpx_nr = 0;              // Used in multiplexer() function
+int16_t   pwr_on_tmr = 1000;       // Needed for 7-segment display test
 uint8_t   hc164_val;
 
 uint8_t std[4] = {STD_LED_OFF, STD_LED_OFF, STD_LED_OFF, STD_LED_OFF};
@@ -58,6 +57,7 @@ extern int16_t  setpoint;        // local copy of SP variable
 extern int16_t  kc;              // Parameter value for Kc value in %/°C
 extern uint8_t  ts;              // Parameter value for sample time [sec.]
 extern int16_t  pid_out;         // Output from PID controller in E-1 %
+extern uint32_t t2_millis;       // Updated in TMR2 interrupt
 
 /*-----------------------------------------------------------------------------
   Purpose  : This routine sets the HC164 shiftregister to a value x.
@@ -160,34 +160,34 @@ void set_one_led(uint8_t nr, uint16_t led, uint16_t blink_msk, uint16_t blink_ra
 void multiplexer(void)
 {
     LEDS_OFF;             // clear LEDs
+    set_hc164(0x00);      // disable CA-lines of 7-segment displays
     PE_ODR |= SEG7_C;     // disable 7-segment display C
     PD_ODR |= PORTD_OUT;  // disable all other 7-segment displays
-    set_hc164(0x00);      // disable CA-lines of 7-segment displays
     
     switch (mpx_nr)
     {
         case 0: // output CA1 BOTTOM display (LSB)
-            set_hc164(0x01);
             PE_ODR &= ~PE_LEDS(bot_01);   // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(bot_01);   // Update all other segments
+            set_hc164(0x01);
             mpx_nr = 1;
             break;
         case 1: // output CA2 BOTTOM display
-            set_hc164(0x02);
             PE_ODR &= ~PE_LEDS(bot_1);   // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(bot_1);   // Update all other segments
+            set_hc164(0x02);
             mpx_nr = 2;
             break;
         case 2: // output CA3 BOTTOM display
-            set_hc164(0x04);
             PE_ODR &= ~PE_LEDS(bot_10);   // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(bot_10);   // Update all other segments
+            set_hc164(0x04);
             mpx_nr = 3;
             break;
         case 3: // outputs CA4 BOTTOM display (MSB)
-            set_hc164(0x08);
             PE_ODR &= ~PE_LEDS(bot_100);  // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(bot_100);  // Update all other segments
+            set_hc164(0x08);
             mpx_nr = 4;
             break;
         case 4: // set Frontpanel LEDs
@@ -200,27 +200,27 @@ void multiplexer(void)
             mpx_nr = 5;
             break;
         case 5: // output CA1 TOP display (LSB)
-            set_hc164(0x10);
             PE_ODR &= ~PE_LEDS(top_01);  // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(top_01);  // Update all other segments
+            set_hc164(0x10);
             mpx_nr = 6;
             break;
         case 6: // output CA2 TOP display
-            set_hc164(0x20);
             PE_ODR &= ~PE_LEDS(top_1);   // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(top_1);   // Update all other segments
+            set_hc164(0x20);
             mpx_nr = 7;
             break;
         case 7: // output CA3 TOP display
-            set_hc164(0x40);
             PE_ODR &= ~PE_LEDS(top_10);  // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(top_10);  // Update all other segments
+            set_hc164(0x40);
             mpx_nr = 8;
             break;
         case 8: // outputs CA4 TOP display (MSB)
-            set_hc164(0x80);
             PE_ODR &= ~PE_LEDS(top_100); // Update PE0 (SEG7_C)
             PD_ODR &= ~PD_LEDS(top_100); // Update all other segments
+            set_hc164(0x80);
         default: // FALL-THROUGH (less code-size)
             mpx_nr = 0;
             break;
@@ -237,6 +237,7 @@ void multiplexer(void)
 @interrupt void TIM2_UPD_OVF_IRQHandler(void)
 {
     scheduler_isr();  // Run scheduler interrupt function
+    t2_millis++;      // update millisecond counter
     if (!pwr_on)
     {   // Display OFF on dispay
         top_100    = top_10 = top_1 = top_01 = bot_01 = LED_OFF;
@@ -314,22 +315,99 @@ void setup_gpio_ports(void)
     PD_ODR     &= ~PORTD_OUT;            // Disable 7-segment displays
 
     //-------------------------------------------------------------------
-    // Initialise all PORTD IO: 1 7-segment display and I2C bus
+    // Initialise all PORTE IO: 1 7-segment display and I2C bus
     //-------------------------------------------------------------------
-    PE_ODR     |=  (I2C_SCL | I2C_SDA);           // Must be set here, or I2C will not work
-    PE_DDR     |=  (I2C_SCL | I2C_SDA | SEG7_C);  // Set as outputs
-    PE_CR1     |=  SEG7_C;                        // Set output pin to Push-Pull
-    PE_ODR     &= ~SEG7_C;                        // Disable 7-segment display
+    PE_ODR     |=  (SPI_NSS | I2C_SCL | I2C_SDA);           // Must be set here, or I2C will not work
+    PE_DDR     |=  (SPI_NSS | I2C_SCL | I2C_SDA | SEG7_C);  // Set as outputs
+    PE_CR1     |=   SPI_NSS | SEG7_C;                       // Set output pin to Push-Pull
+    PE_ODR     &=  ~SEG7_C;                                 // Disable 7-segment display
 } // setup_gpio_ports()
 
 /*-----------------------------------------------------------------------------
-  Purpose  : This task is called every 500 msec. and processes the NTC 
-             temperature probes from NTC1 (PD3/AIN4) and NTC2 (PD2/AIN3)
+  Purpose  : This task is called every 100 msec. and creates a slow PWM signal
+             from pid_output: T = 12.5 seconds. This signal can be used to
+             drive a Solid-State Relay (SSR).
+  Variables: pid_out (global) in E-1 %: 685 means 68.5 %
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void pid_to_time(void)
+{
+    static uint8_t std_ptt = 1; // state [on, off]
+    static uint8_t ltmr    = 0; // #times to set S3 to 0
+    static uint8_t htmr    = 0; // #times to set S3 to 1
+    uint8_t x;                  // temp. variable
+     
+    x = (uint8_t)(pid_out >> 3); // divide by 8 to give 1.25 * pid_out
+    
+    switch (std_ptt)
+    {
+        case 0: // OFF
+            if (ts == 0) std_ptt = 2;
+            else if (ltmr == 0)
+            {   // End of low-time
+                htmr = x; // htmr = 1.25 * pid_out
+                if ((htmr > 0) && pwr_on) std_ptt = 1;
+            } // if
+            else ltmr--; // decrease timer
+            SSR_OFF;     // SSR output = 0
+            leds_out &= ~LED_OUT1; // disable OUT1 LED
+            break;
+        case 1: // ON
+            if (ts == 0) std_ptt = 2;
+            else if (htmr == 0)
+            {   // End of high-time
+                ltmr = 125 - x; // ltmr = 1.25 * (100 - pid_out)
+                if ((ltmr > 0) || !pwr_on) std_ptt = 0;
+            } // if
+            else htmr--; // decrease timer
+            SSR_ON;      // SSR output = 1
+            leds_out |= LED_OUT1; // enable OUT1 LED
+            break;
+        case 2: // DISABLED
+            SSR_OFF; // S3 output = 0;
+            leds_out &= ~LED_OUT1; // disable OUT1 LED
+            if (ts > 0) std_ptt = 1;
+            break;
+    } // switch
+} // pid_to_time()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This task is called every 500 msec. and reads the temperatures 
+             from the thermocouple and from the PT100 sensor
   Variables: -
   Returns  : -
   ---------------------------------------------------------------------------*/
 void adc_task(void)
 {
+    uint8_t err,err1;         // Error values
+    int16_t temp_tc, temp_pt; // Values read from TC and PT100 sensors
+    
+    temp_err    = false;               // assume all is well
+    temp_tc     = max31855_read(&err); // K-type thermocouple
+    err1        = ((err & TC_ERR_OC) > 0);
+    if (err1) 
+    {   // No thermocouple sensor present, try PT100 sensor
+        temp_tc_fil = TEMP_ROOM;           // reset TC-temperature to default
+        temp_pt     = max31865_read(&err); // Read PT100 temperature
+        if (err)
+        {   // No sensors detected
+            temp_pt_fil = TEMP_ROOM; // Reset PT100-temperature
+            temp_tc_pt  = 0;         // Default temperature to 0.0 °C
+            temp_err    = true;      // No sensors detected
+        } // if
+        else
+        {   // PT100 sensor present and no TC sensor, so use PT100 temperature
+            temp_pt_fil = ((temp_pt_fil - (temp_pt_fil >> FILTER_SHIFT)) + temp_pt);
+            temp_tc_pt  = (int16_t)((temp_pt_fil + FILTER_ROUND) >> FILTER_SHIFT); 
+            temp_tc_pt += eeprom_read_config(EEADR_MENU_ITEM(tc2));
+        } // else
+    } // if
+    else
+    {  // Thermocouple sensor present, so use that temperature
+       temp_tc_fil = ((temp_tc_fil - (temp_tc_fil >> FILTER_SHIFT)) + temp_tc);
+       temp_tc_pt  = (int16_t)((temp_tc_fil + FILTER_ROUND) >> FILTER_SHIFT); 
+       temp_tc_pt += eeprom_read_config(EEADR_MENU_ITEM(tc));
+    } // else
 } // adc_task()
 
 /*-----------------------------------------------------------------------------
@@ -342,7 +420,7 @@ void std_task(void)
 {
     read_buttons(); // reads the buttons keys, result is stored in _buttons
     menu_fsm();     // Finite State Machine menu
-    //pid_to_time();  // Make Slow-PWM signal and send to S3 output-port
+    pid_to_time();  // Make Slow-PWM signal and send to Solid-State Relay (SSR)
 } // std_task()
 
 /*-----------------------------------------------------------------------------
@@ -363,24 +441,19 @@ void ctrl_task(void)
     else minutes = true;  // control-timing is in minutes
 
    // Start with updating the alarm
-   // cache whether the 2nd probe is enabled or not.
-      if (eeprom_read_config(EEADR_MENU_ITEM(Pb2))) 
-        probe2 = true;
-   else probe2 = false;
-   if (ad_err1 || (ad_err2 && probe2))
+   if (temp_err)
    {
-       sound_alarm = true;
+       relay_alarm1 = true;
        if (menu_is_idle)
        {  // Make it less anoying to nagivate menu during alarm
-          top_100 = LED_A;
-          top_10  = LED_L;
-          top_1   = LED_S; // sensor not connected alarm
-          if (ad_err1) top_01 = LED_1;
-          else         top_01 = LED_2;
+          top_100 = LED_A; top_10  = LED_L;
+          top_1   = LED_0; top_01  = LED_1; // sensor not connected alarm
+          bot_100 = LED_n; bot_10  = LED_o;
+          bot_1   = LED_P; bot_01  = LED_b; // noPb = no Probe
        } // if
        cooling_delay = heating_delay = 60;
    } else {
-       sound_alarm = false; // reset the piezo buzzer
+       relay_alarm1 = false; // reset the piezo buzzer
        if(((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn))) < THERMOSTAT_MODE)
             leds_out |=  (LED_AT | LED_AT_BLINK); // Indicate profile mode
        else leds_out &= ~(LED_AT | LED_AT_BLINK);
@@ -390,48 +463,39 @@ void ctrl_task(void)
        if (sa)
        {
             if (minutes) // is timing-control in minutes?
-                 diff = temp_ntc1 - setpoint;
-            else diff = temp_ntc1 - eeprom_read_config(EEADR_MENU_ITEM(SP));
+                 diff = temp_tc_pt - setpoint;
+            else diff = temp_tc_pt - eeprom_read_config(EEADR_MENU_ITEM(SP));
             if (diff < 0) 
                  diff = -diff;
             if (sa < 0)
             {
                  sa = -sa;
-                 sound_alarm = (diff <= sa); // enable buzzer if diff is small
+                 relay_alarm1 = (diff <= sa); // enable relay if diff is small
             } else {
-                 sound_alarm = (diff >= sa); // enable buzzer if diff is large
+                 relay_alarm1 = (diff >= sa); // enable relay if diff is large
             } // if
        } // if
-       if (ts == 0)                // PID Ts parameter is 0?
+       if (ts == 0)              // PID Ts parameter is 0?
        {
-           temperature_control();  // Run thermostat
-           pid_out = 0;            // Disable PID-output
+            init_temp_delays();  // Initialise Heating and Cooling delay
+            pid_out = 0;         // Disable PID-output
        } // if
-       else 
+       else pid_control();       // Run PID controller
+       if (menu_is_idle)         // show temperature if menu is idle
        {
-           pid_control();          // Run PID controller
-       } // else
-       if (menu_is_idle)           // show temperature if menu is idle
-       {
-           if (sound_alarm && show_sa_alarm)
-           {
-                top_100 = LED_A;
-                top_10  = LED_L;
-                top_1   = LED_d;
-           } else {
-               value_to_led(setpoint,LEDS_TEMP, ROW_BOT); // display setpoint on top-row
-               switch (sensor2_selected)
-               {
-                   case 0: value_to_led(temp_ntc1,LEDS_TEMP,ROW_TOP); 
-                           break;
-                   case 1: value_to_led(temp_ntc2,LEDS_TEMP,ROW_TOP); 
-                           break;
-                   case 2: value_to_led(pid_out  ,LEDS_INT,ROW_TOP); 
-                           break;
-               } // switch
-           } // else
-           show_sa_alarm = !show_sa_alarm;
+            value_to_led(temp_tc_pt,LEDS_TEMP,ROW_TOP); // display temperature on top-row
+            value_to_led(setpoint  ,LEDS_TEMP,ROW_BOT); // display setpoint on bottom-row
        } // if
+   } // else
+   if (relay_alarm1)
+   {
+        leds_out |= LED_ALM1 | LED_ALM1_BLINK;
+        ALARM_ON;
+   }
+   else
+   {
+       leds_out &= ~(LED_ALM1 | LED_ALM1_BLINK);
+       ALARM_OFF;
    } // else
 } // ctrl_task()
 
@@ -498,7 +562,9 @@ int main(void)
 	initialise_system_clock(); // set main-clock to 16 MHz
 	setup_gpio_ports();        // Initialise all GPIO ports
 	setup_timer2();            // set TMR2 clock to 1 kHz for interrupt
-
+    spi_init();                // Init. SPI interface
+    max31865_init();           // Init. PT100 device
+    
 	// Initialise all tasks for the scheduler
     scheduler_init();                    // init. task scheduler
     add_task(adc_task ,"ADC",  0,  500); // every 500 msec.

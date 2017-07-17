@@ -25,6 +25,7 @@
 #include "spi.h"
 #include "c100_pid_main.h"
 #include "delay.h"
+#include <math.h>
 
 uint8_t spi_error;
 
@@ -43,9 +44,10 @@ uint8_t spi_error;
 void spi_init(void)
 {
 	SPI_CR1   &= ~SPI_CR1_SPE; // Disable SPI
-    SPI_CR1    = 0x0C;         // MSB first, disable SPI, 4 MHz clock, Master mode, SPI mode 0
+    SPI_CR1    = 0x0D;         // MSB first, disable SPI, 4 MHz clock, Master mode, SPI mode 1
 	SPI_CR2    = 0x03;         // Select SW Slave Management and Master mode
 	SPI_ICR    = 0x00;         // Disable SPI interrupt on error
+    SPI_CR1   |=  SPI_CR1_SPE; // Enable SPI
 	// SPI_NSS is already set to Output and a high-level by GPIO init.
 } // spi_init()
 
@@ -120,6 +122,86 @@ int16_t max31855_read(uint8_t *err)
 } // max31855_read()
 
 /*-----------------------------------------------------------------------------
+  Purpose  : This function reads an 8-bit value from a register of the MAX31865. 
+  Variables: 
+        reg: the name of the MAX31865 register
+  Returns  : the 8-bit data read
+  ---------------------------------------------------------------------------*/
+uint8_t max31865_read8(uint8_t reg)
+{
+    uint8_t ret;
+    
+    CS_PT100_0;            // Set chip-select for MAX31865 active
+    delay_usec(1);         // at least 400 nsec. delay
+    spi_write(reg & 0x7F); // register address
+	ret = spi_read();      // dummy read
+    spi_write(0x00);
+	ret = spi_read();      // read register value
+    CS_PT100_1;            // Disable chip-select for MAX31865
+    return ret;
+} // max31865_read8()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This function writes an 8-bit value to a register of the MAX31865. 
+  Variables: 
+        reg: the name of the MAX31865 register
+        dat: the 8-bit data to write to the MAX31865 register
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void max31865_write8(uint8_t reg, uint8_t dat)
+{
+    CS_PT100_0;            // Set chip-select for MAX31865 active
+    delay_usec(1);         // at least 400 nsec. delay
+    spi_write(reg | 0x80); // Write to register
+    spi_write(dat);        // Write data to register
+    CS_PT100_1;            // Disable chip-select for MAX31865
+} // max31865_write8()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This function reads a 16-bit value from a register of the MAX31865. 
+  Variables: 
+        reg: the name of the MAX31865 register
+  Returns  : the 16-bit data read
+  ---------------------------------------------------------------------------*/
+uint16_t max31865_read16(uint8_t reg)
+{
+    uint16_t ret;
+    
+    CS_PT100_0;            // Set chip-select for MAX31865 active
+    delay_usec(1);         // at least 400 nsec. delay
+    spi_write(reg & 0x7F); // register address
+	ret = spi_read();      // dummy read
+	spi_write(0x00);
+	ret = spi_read();      // Read MSB
+    ret <<= 8;
+	spi_write(0x00);
+	ret |= spi_read();     // Read LSB
+    CS_PT100_1;            // Disable chip-select for MAX31865
+    return ret;
+} // max31865_read8()
+
+/*-----------------------------------------------------------------------------
+  Purpose  : This function writes a 16-bit value to a register of the MAX31865. 
+  Variables: 
+        reg: the name of the MAX31865 register
+        dat: the 16-bit data to write to the MAX31865 register
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void max31865_write16(uint8_t reg, uint16_t dat)
+{
+    uint8_t dat8;
+    
+    CS_PT100_0;            // Set chip-select for MAX31865 active
+    delay_usec(1);         // at least 400 nsec. delay
+    spi_write(reg | 0x80); // Write to register
+    dat8 = (uint8_t)(dat >> 8);
+    spi_write(dat8);       // Write MSB
+    dat8 = (uint8_t)(dat & 0x00FF);
+    spi_write(dat8);       // Write LSB
+    CS_PT100_1;            // Disable chip-select for MAX31865
+} // max31865_write8()
+
+/*-----------------------------------------------------------------------------
   Purpose  : This function initialises the MAX31865 device. 
              A PT100 sensor should be connected to the device.
   Variables: -
@@ -127,71 +209,51 @@ int16_t max31855_read(uint8_t *err)
   ---------------------------------------------------------------------------*/
 void max31865_init(void)
 {
-    CS_PT100_0;                        // Set chip-select for MAX31865 active
-    delay_usec(1);                     // at least 400 nsec. delay
-    spi_write(MAX31856_CONFIG | 0x80); // Write to CONFIG register
-    spi_write(0x03);                   // Bias off, auto mode off, 2-wires, clear fault, 50 Hz filter
-    CS_PT100_1;                        // Disable chip-select for MAX31865
+    //uint8_t val8;
+    //uint16_t val16;
+    
+    max31865_write8(MAX31865_CONFIG, 0xC3);
+    delay_msec(10);  // Let Vbias settle
+    
+    // TEST
+    //val8 = max31865_read8(MAX31856_CONFIG);
+    //max31865_write16(MAX31856_HFLTMSB,0xEDCB);
+    //val16 = max31865_read16(MAX31856_HFLTMSB);
 } // max31865_init()
 
 /*-----------------------------------------------------------------------------
   Purpose  : This function reads the temperature from the MAX31865 device. 
              A PT100 sensor should be connected to the device.
-  Variables: err: SCV, SCG or OC Fault bits
+  Variables: err: 1 = No PT100 sensor present
   Returns  : temperature in E-1 °C
   ---------------------------------------------------------------------------*/
-int16_t max31865_read(void)
+int16_t max31865_read(uint8_t *err)
 {
-	uint8_t  t;
-	uint16_t rtd;
-    int32_t  x;
-	
-    CS_PT100_0;                            // Set chip-select for MAX31865 active
-    delay_usec(1);                         // at least 400 nsec. delay
-    spi_write(MAX31856_CONFIG | 0x80);     // Write to CONFIG register
-    spi_write(VBIAS | CLR_FLT | FIL_50HZ); // Vbias ON, clear faults, 50 Hz filter
-    CS_PT100_1;                            // Disable chip-select for MAX31865
-    delay_msec(10);                        // Let Vbias settle
-
-    CS_PT100_0;                            // Set chip-select for MAX31865 active again
-	spi_write(MAX31856_CONFIG | 0x80);     // Write to CONFIG register
-    spi_write(0xFF);               
-	t = spi_read() | ONE_SHOT;         
-    CS_PT100_1;                            // Disable chip-select for MAX31865
-    delay_usec(1);                         // at least 400 nsec. delay
-
-    CS_PT100_0;                            // Set chip-select for MAX31865 active again
-    spi_write(MAX31856_CONFIG | 0x80);     // Write to CONFIG register
-    spi_write(t);                          // Set one-shot conversion
-    CS_PT100_1;                            // Disable chip-select for MAX31865
-    delay_msec(65);                        // Wait for conversion-end
-
-    CS_PT100_0;                            // Set chip-select for MAX31865 active again
-    spi_write(MAX31856_RTD_MSB);           // MSB of RTD register address
-	spi_write(0xFF);
-	rtd = spi_read();                      // Read MSB
-	rtd <<= 8;
-	rtd |= spi_read();                     // Read LSB
-	rtd >>= 1;                             // remove fault bit
-    CS_PT100_1;                            // Disable chip-select for MAX31865
-    delay_usec(1);                         // at least 400 nsec. delay
+	uint8_t  x;
+    uint16_t rtd;
+	float    d;
+    
+    rtd = max31865_read16(MAX31865_RTD_MSB); // Read 16-bit RTD value
+    *err = (rtd & 0x0001);                   // Fault bit
+    if (*err)
+    {
+        x  = max31865_read8(MAX31865_CONFIG);
+        x |= CLR_FLT;
+        max31865_write8(MAX31865_CONFIG,x); // Clear Fault Bit in Config Register
+    } // if
+    rtd >>= 1;                             // remove fault bit
 
     //-------------------------------------------------------------------------------------
-    // The RTD value read is relative to the 150 Ohm reference resistor. To convert this
+    // The RTD value read is relative to a 390 Ohm reference resistor. To convert this
     // value to a temperature in E-1 °C, regression is used to find the relation. It is:
     //
-    //          RTD - 21868         5*RTD - 109340 + 21   5*RTD - 109319
-    //   Temp = ----------- + 0.5 = ------------------- = --------------
-    //              8.4                     42                  42
+    //          RTD - 8404.8        
+    //   Temp = ------------ + 0.5     1/3.2353 = 0.309090347
+    //            3.2353          
     //
-    // Example 1: A value of exactly 100.0 Ohm corresponds with 0 °C. This results in a
-    //            RTD value of (100/150)*32767 = 21845
-    //            (5*21845-109319)/42 = -94/42 = -2 E-1 °C or an error of -0.2 °C
-    //
-    // Example 2: 123.24 Ohms (60.0 °C) => RTD = 26921. (5*26921-109319)/42 = 602 E-1 °C
     //-------------------------------------------------------------------------------------
-    x = ((int32_t)rtd << 2) + rtd - 109319L;
-	x /= 42;
-	rtd = (int16_t)x;
+    d  = (float)rtd - 8404.8;
+	d *= 0.309090347;
+	rtd = (int16_t)(d + 0.5);
 	return rtd;
 } // max31865_read()

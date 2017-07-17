@@ -108,8 +108,8 @@ enum e_item_type
 // SP	Set setpoint	                                 -40 to 140°C or -40 to 250°F
 // hy	Set hysteresis                                   0.0 to 5.0°C or 0.0 to 10.0°F
 // hy2	Set hysteresis for 2nd temp probe	             0.0 to 25.0°C or 0.0 to 50.0°F
-// tc	Set temperature correction	                     -5.0 to 5.0°C or -10.0 to 10.0°F
-// tc2	Set temperature correction for 2nd temp probe    -5.0 to 5.0°C or -10.0 to 10.0°F
+// tc	Set temperature correction for thermocouple      -5.0 to 5.0°C or -10.0 to 10.0°F
+// tc2	Set temperature correction for PT100 sensor      -5.0 to 5.0°C or -10.0 to 10.0°F
 // SA	Setpoint alarm	                                 0 = off, -40 to 40°C or -80 to 80°F
 // St	Set current profile step	                     0 to 8
 // dh	Set current profile duration	                 0 to 999 hours
@@ -122,7 +122,7 @@ enum e_item_type
 // Hc   Kc parameter for PID controller in %/°C          -9999..9999, >0: heating loop, <0: cooling loop 
 // ti   Ti parameter for PID controller in seconds       0..9999 
 // td   Td parameter for PID controller in seconds       0..9999 
-// ts   Ts parameter for PID controller in seconds       0..9999, 0 = disable PID controller = thermostat control
+// ts   Ts parameter for PID controller in seconds       0..9999, 0 = disable PID controller
 // rn	Set run mode	                                 Pr0 to Pr5 and th (6)
 //-----------------------------------------------------------------------------
 #define MENU_DATA(_) \

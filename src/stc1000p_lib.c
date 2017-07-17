@@ -75,15 +75,13 @@ int16_t  hysteresis2;           // th-mode: hysteresis for 2nd temp probe ; pid-
 uint8_t  portd, porte;          // Needed for read_buttons()
 
 // External variables, defined in other files
-extern bool     probe2;    // cached flag indicating whether 2nd probe is active
-extern int16_t  temp_ntc1; // The temperature in E-1 °C from NTC probe 1
-extern int16_t  temp_ntc2; // The temperature in E-1 °C from NTC probe 2
-extern int16_t  kc;        // Parameter value for Kc value in %/°C
-extern uint16_t ti;        // Parameter value for I action in seconds
-extern uint16_t td;        // Parameter value for D action in seconds
-extern uint8_t  ts;        // Parameter value for sample time [sec.]
-extern uint8_t  hc164_val;
-extern uint16_t leds_out;              // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
+extern int16_t  temp_tc_pt; // Temperature in E-1 °C from TC or PT100
+extern int16_t  kc;         // Parameter value for Kc value in %/°C
+extern uint16_t ti;         // Parameter value for I action in seconds
+extern uint16_t td;         // Parameter value for D action in seconds
+extern uint8_t  ts;         // Parameter value for sample time [sec.]
+extern uint8_t  hc164_val;  // Backup value for HC164 shift-register on frontpanel
+extern uint16_t leds_out;   // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
 
 // This contains the definition of the menu-items for the parameters menu
 const struct s_menu menu[] = 
@@ -182,13 +180,20 @@ void value_to_led(int16_t value, uint8_t decimal, uint8_t row)
 {
 	uint8_t i;           // loop-variable
     int16_t val = value; // copy of value
+    int16_t val2;        // copy of val
     uint8_t *p100, *p10, *p1, *p01; // pointers to 7-segment display values
     
     if (val < 0) 
     {  // Handle negative values
-       val  = -value;
+       val  = -val;
+       if (val >= 1000) 
+       {
+          val = divu10(val); // loose the decimal
+          decimal = 0;       // no decimal point 
+       } // if
 	} // if
-
+    val2 = val;
+    
     if (row == ROW_TOP)
     {
         p100 = &top_100; p10  = &top_10;
@@ -214,11 +219,11 @@ void value_to_led(int16_t value, uint8_t decimal, uint8_t row)
 
     if (value < 0)
     {   // original value < 0 
-        if ((value > -10) && (decimal == 0)) 
-                                *p1   = LED_MIN;
-        else if (value > -100)  *p10  = LED_MIN;
-        else if (value > -1000) *p100 = LED_MIN;
-        // value <= -1000 is not realistic
+        if ((val2 < 10) && (decimal == 0)) 
+                              *p1   = LED_MIN;
+        else if (val2 < 100)  *p10  = LED_MIN;
+        else if (val2 < 1000) *p100 = LED_MIN;
+        // else value >= 1000: prevented by divu10()
     } // if
 } // value_to_led()
 
@@ -400,27 +405,27 @@ void read_buttons(void)
     
     disable_interrupts();     // Disable interrups while reading buttons
     // Save registers that interferes with keys
+    hc164_state = hc164_val;      // save current hc164_val
+    set_hc164(0x00);
     porte   = PE_IDR & SEG7_C;    // Save 7-segment C status
     portd   = PD_IDR & PORTD_OUT; // Save other 7-segments
     PE_ODR |= SEG7_C;             // disable 7-segment display C
     PD_ODR |= PORTD_OUT;          // disable all other 7-segment displays
-    hc164_state = hc164_val;      // save current hc164_val
-    set_hc164(0x00);
-    for (i = 0x88; i > 0x0F; i >>= 1)
+    for (i = 0x08; i > 0x00; i >>= 1)
     {  // Read UP, DOWN, LEFT, S keys
-       set_hc164(i);
        _buttons <<= 1;
        _buttons  &= 0xFE; // clear bit 0
+       set_hc164(i);
        if (PC_IDR & KEYS) _buttons |= 0x01;
        set_hc164(0x00);
     } // for i
     
     // Restore registers that interferes with keys
-    set_hc164(hc164_state); // restore HC164 state
     PD_ODR &= ~PORTD_OUT;
     PD_ODR |= portd;        // restore PORTD
     PE_ODR &= ~SEG7_C;
     PE_ODR |= porte;        // restore PORTE
+    set_hc164(hc164_state); // restore HC164 state
     enable_interrupts();    // Re-enable Interrupts
 } // read_buttons()
 
@@ -483,7 +488,6 @@ void menu_fsm(void)
                 menustate = MENU_IDLE;
             } else if(!BTN_HELD(BTN_LEFT))
             {   // 0 = temp_ntc1, 1 = temp_ntc2, 2 = pid-output
-                if (++sensor2_selected > 1 + (ts > 0)) sensor2_selected = 0;
                 menustate = MENU_IDLE;
             } // else if
         break; // MENU_POWER_DOWN_WAIT
@@ -820,12 +824,12 @@ void pid_control(void)
        kc = eeprom_read_config(EEADR_MENU_ITEM(Hc));
        ti = eeprom_read_config(EEADR_MENU_ITEM(Ti));
        td = eeprom_read_config(EEADR_MENU_ITEM(Td));
-       init_pid(kc,ti,td,ts,temp_ntc1); // Init PID controller
+       init_pid(kc,ti,td,ts,temp_tc_pt); // Init PID controller
     } // if
     
     if (++pid_tmr >= ts) 
     {   // Call PID controller every TS seconds
-        pid_ctrl(temp_ntc1,&pid_out,setpoint);
+        pid_ctrl(temp_tc_pt,&pid_out,setpoint);
         pid_tmr = 0;
     } // if
 } // pid_control()

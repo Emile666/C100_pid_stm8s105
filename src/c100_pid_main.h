@@ -82,9 +82,9 @@
 #define SSR         (0x08)
 #define ALARM       (0x04)
 
-#define SSR_ON        (PA_ODR |=  HEAT)
-#define SSR_OFF       (PA_ODR &= ~HEAT)
-#define SSR_STATUS   ((PA_IDR & HEAT) == HEAT)
+#define SSR_ON        (PA_ODR |=  SSR)
+#define SSR_OFF       (PA_ODR &= ~SSR)
+#define SSR_STATUS   ((PA_IDR & SSR) == SSR)
 #define ALARM_ON      (PA_ODR |=  ALARM)
 #define ALARM_OFF     (PA_ODR &= ~ALARM)
 #define ALARM_STATUS ((PA_IDR & ALARM) == ALARM)
@@ -110,7 +110,7 @@
 #define SPI_MOSI (0x40) /* SPI MOSI line */
 #define SPI_SCK  (0x20) /* SPI Serial-clock */
 #define CLOCK    (0x10) /* Clock pin for HC164 shift-register on frontpanel */
-#define SDIN     (0x08) /* Data-in pin for HC164 shoft-register */
+#define SDIN     (0x08) /* Data-in pin for HC164 shift-register */
 #define LEDS     (0x04) /* Connected to LED anodes, 0 = enabled LEDs */
 #define KEYS     (0x02) /* Connected to buttons */
 
@@ -168,10 +168,11 @@
 //-----------------------------------------------------------------------
 // PORTE Inputs and Outputs
 //-----------------------------------------------------------------------
+#define SPI_NSS   (0x20)
 #define I2C_SDA   (0x04)
 #define I2C_SCL   (0x02)
 #define SEG7_C    (0x01)
-#define PORTE_OUT (I2C_SDA | I2C_SCL | SEG7_C)
+#define PORTE_OUT (SPI_NSS | I2C_SDA | I2C_SCL | SEG7_C)
 
 #define PE_LEDS(x) (x & 0x01) /* Convert LED define to PORTE value */
 
@@ -217,6 +218,11 @@
 #define LED_U	(0xE3)
 #define LED_u	(0xC1)
 #define LED_y	(0xB3)
+
+// Define for lowpass-filters
+#define FILTER_SHIFT  (6)
+#define FILTER_ROUND  (1<<(FILTER_SHIFT-1))
+#define TEMP_ROOM     (200L<<(FILTER_SHIFT))
 
 // Function prototypes
 void set_hc164(uint8_t x);
