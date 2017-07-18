@@ -52,14 +52,13 @@ const uint8_t led_lookup[] = {LED_0,LED_1,LED_2,LED_3,LED_4,LED_5,LED_6,LED_7,LE
 uint8_t top_100, top_10, top_1, top_01;  // 7-segments top row: 100s, 10s, 1s and 0.1s
 uint8_t bot_100, bot_10, bot_1, bot_01;  // 7-segments bottom row: 100s, 10s, 1s and 0.1s
 
-uint16_t cooling_delay = 60;    // Initial cooling delay
-uint16_t heating_delay = 60;    // Initial heating delay
 uint8_t  menustate     = MENU_IDLE; // Current STD state number for menu_fsm()
 uint8_t  ret_state;                 // menustate to return to
 bool     menu_is_idle  = true;  // No menu active within STD
 bool     pwr_on        = true;  // True = power ON, False = power OFF
 bool     fahrenheit    = false; // false = Celsius, true = Fahrenheit
 bool     minutes       = false; // timing control: false = hours, true = minutes
+bool     heating_loop  = true;  // true = heating-loop, false = cooling-loop
 uint8_t  menu_item     = 0;     // Current menu-item: [0..NO_OF_PROFILES]
 uint8_t  config_item   = 0;     // Current index within profile or parameter menu
 uint8_t  m_countdown   = 0;     // Timer used within menu_fsm()
@@ -67,11 +66,10 @@ uint8_t  _buttons      = 0;     // Current and previous value of button states
 int16_t  config_value;          // Current value of menu-item
 int8_t   key_held_tmr;          // Timer for value change acceleration
 uint8_t  sensor2_selected = 0;  // DOWN button pressed < 3 sec. shows 2nd temperature / pid_output
+int16_t  hysteresis;            // th-mode: hysteresis for temp probe
 int16_t  setpoint;              // local copy of SP variable
 uint16_t curr_dur = 0;          // local counter for temperature duration
 int16_t  pid_out  = 0;          // Output from PID controller in E-1 %
-int16_t  hysteresis;            // th-mode: hysteresis for temp probe ; pid-mode: lower hyst. limit in E-1 %
-int16_t  hysteresis2;           // th-mode: hysteresis for 2nd temp probe ; pid-mode: upper hyst. limit in E-1 %
 uint8_t  portd, porte;          // Needed for read_buttons()
 
 // External variables, defined in other files
@@ -479,15 +477,14 @@ void menu_fsm(void)
                 eeprom_write_config(EEADR_POWER_ON, pwr_on);
                 if (pwr_on)
                 {
-                    heating_delay = 60; // 60 sec.
-                    cooling_delay = 60; // 60 sec.
                     eeprom_write_config(EEADR_MENU_ITEM(St), 0);
                     curr_dur = 0;
                     eeprom_write_config(EEADR_MENU_ITEM(dh), curr_dur);
                 } // if
                 menustate = MENU_IDLE;
             } else if(!BTN_HELD(BTN_LEFT))
-            {   // 0 = temp_ntc1, 1 = temp_ntc2, 2 = pid-output
+            {   // 0 = PV + SP display, 1 = pid-output
+                if (++sensor2_selected > 1) sensor2_selected = 0;
                 menustate = MENU_IDLE;
             } // else if
         break; // MENU_POWER_DOWN_WAIT
@@ -603,7 +600,7 @@ void menu_fsm(void)
             break;
         //--------------------------------------------------------------------         
         case MENU_SET_CONFIG_ITEM:
-            leds_out = LED_ALM2;
+            leds_out |= LED_ALM2;
             if (m_countdown == 0)
             {   // Timeout, go back to idle state
                     menustate = MENU_IDLE;
@@ -631,7 +628,7 @@ void menu_fsm(void)
                 } // else
                 ret_state = MENU_SHOW_CONFIG_ITEM;  // return state
                 menustate = MENU_SHOW_CONFIG_VALUE; // display config value
-            } else if(BTN_RELEASED(BTN_DOWN))
+            } else if (BTN_RELEASED(BTN_DOWN))
             {
                 config_item--;
                 if(menu_item < MENU_ITEM_NO)
@@ -692,7 +689,7 @@ void menu_fsm(void)
             break;
        //--------------------------------------------------------------------         
        case MENU_SET_CONFIG_VALUE:
-            leds_out = LED_ALM2 | LED_ALM2_BLINK;
+            leds_out |= LED_ALM2 | LED_ALM2_BLINK;
             adr = MI_CI_TO_EEADR(menu_item, config_item);
             if (m_countdown == 0)
             {
@@ -786,11 +783,8 @@ uint16_t min_to_sec(enum menu_enum x)
 void init_temp_delays(void)
 {
     if (!minutes) setpoint = eeprom_read_config(EEADR_MENU_ITEM(SP));
-    hysteresis  = eeprom_read_config(EEADR_MENU_ITEM(hy));
-    hysteresis2 = eeprom_read_config(EEADR_MENU_ITEM(hy2));
-
-    if (cooling_delay) cooling_delay--;
-    if (heating_delay) heating_delay--;
+    hysteresis   = eeprom_read_config(EEADR_MENU_ITEM(hy));
+    heating_loop = (eeprom_read_config(EEADR_MENU_ITEM(Hc)) > 0);
 } // init_temp_delays()
 
 /*-----------------------------------------------------------------------------
@@ -801,7 +795,22 @@ void init_temp_delays(void)
   ---------------------------------------------------------------------------*/
 void temperature_control(void)
 {
-    init_temp_delays();  // Initialise Heating and Cooling delay
+    init_temp_delays(); // Initialise Heating and Cooling delay
+
+    // This is the thermostat logic
+    if (!pwr_on ||
+       ((pid_out < 0) && (temp_tc_pt <= setpoint)) || 
+       ((pid_out > 0) && (temp_tc_pt >= setpoint)))
+    {
+        pid_out = 0; // Disable SSR
+    } // if
+    else if (pid_out == 0) 
+    {
+        if (!heating_loop && (temp_tc_pt > setpoint + hysteresis)) 
+             pid_out = -1000;
+        if (heating_loop && (temp_tc_pt < setpoint - hysteresis))
+             pid_out = +1000;
+    } // else if
 } // temperature_control()
 
 /*-----------------------------------------------------------------------------
@@ -811,7 +820,7 @@ void temperature_control(void)
   Variables: -
   Returns  : -
   ---------------------------------------------------------------------------*/
-void pid_control(void)
+void pid_control(bool init)
 {
     static uint8_t pid_tmr = 0;
     
@@ -819,7 +828,7 @@ void pid_control(void)
 
     if (kc != eeprom_read_config(EEADR_MENU_ITEM(Hc)) ||
         ti != eeprom_read_config(EEADR_MENU_ITEM(Ti)) ||
-        td != eeprom_read_config(EEADR_MENU_ITEM(Td)))
+        td != eeprom_read_config(EEADR_MENU_ITEM(Td)) || init)
     {   // One or more PID parameters have changed
        kc = eeprom_read_config(EEADR_MENU_ITEM(Hc));
        ti = eeprom_read_config(EEADR_MENU_ITEM(Ti));

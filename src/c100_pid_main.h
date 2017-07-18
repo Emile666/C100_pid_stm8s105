@@ -184,6 +184,7 @@
 #define LED_ON  (0xFF)
 #define LED_MIN (0x10)
 #define LED_DP  (0x08)
+#define LED_EQ  (0x90)
 #define LED_0	(0xE7)
 #define LED_1	(0x03)
 #define LED_2	(0xD6)

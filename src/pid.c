@@ -42,12 +42,13 @@ uint32_t kd;       // Internal value for D action
 int32_t  pp;       // debug
 int16_t  yk_1;     // y[k-1]
 int16_t  yk_2;     // y[k-2]
+int16_t  pid_max;
+int16_t  pid_min;
 
-void init_pid(uint16_t kc, uint16_t ti, uint16_t td, uint8_t ts, uint16_t yk)
 /*------------------------------------------------------------------
   Purpose  : This function initialises the Takahashi Type C PID
              controller.
-  Variables: kc: Kc parameter value in %/Â°C    ; controls P-action
+  Variables: kc: Kc parameter value in %/°C    ; controls P-action
              ti: Ti parameter value in seconds ; controls I-action
              td: Td parameter value in seconds ; controls D-action
              ts: Ts parameter sample-time of pid-controller in seconds
@@ -63,27 +64,38 @@ void init_pid(uint16_t kc, uint16_t ti, uint16_t td, uint8_t ts, uint16_t yk)
 
   Returns  : No values are returned
   ------------------------------------------------------------------*/
+void init_pid(uint16_t kc, uint16_t ti, uint16_t td, uint8_t ts, int16_t yk)
 {
    if (ti == 0) ki = 0;
    else         ki = (((uint32_t)kc * ts) / ti);
    if (ts == 0) kd = 0;
    else         kd = (((uint32_t)kc * td) / ts);
-   
+
+   if (kc > 0)
+   {   // heating loop
+       pid_max = GMA_HLIM;
+       pid_min = 0;
+   }
+   else
+   {   // cooling loop
+       pid_max = 0;
+       pid_min = GMA_LLIM;
+   } // else
    yk_2 = yk_1 = yk; // init. previous samples to current temperature
 } // init_pid()
 
-void pid_ctrl(int16_t yk, int16_t *uk, uint16_t tset)
 /*------------------------------------------------------------------
   Purpose  : This function implements the Takahashi Type C PID
              controller: the P and D term are no longer dependent
              on the setpoint, only on PV.
              This function should be called once every TS seconds.
   Variables:
-        yk : The input variable y[k] (= measured temperature in E-1 Â°C)
+        yk : The input variable y[k] (= measured temperature in E-1 °C)
        *uk : The pid-output variable u[k] [-1000..+1000] in E-1 %
-      tset : The setpoint value w[k] for the temperature in E-1 Â°C
+      tset : The setpoint value w[k] for the temperature in E-1 °C
   Returns  : No values are returned
   ------------------------------------------------------------------*/
+void pid_ctrl(int16_t yk, int16_t *uk, int16_t tset)
 {
     //-----------------------------------------------------------------------------
     // Takahashi Type C PID controller:
@@ -98,12 +110,14 @@ void pid_ctrl(int16_t yk, int16_t *uk, uint16_t tset)
     pp  += (uint32_t)ki * (tset - yk);               // (Kc.Ts/Ti).e[k]
     pp  += (uint32_t)kd * ((yk_1 << 1) - yk - yk_2); // (Kc.Td/Ts).(2.y[k-1]-y[k]-y[k-2])
     *uk += (int16_t)pp;
-    // limit u[k] to GMA_HLIM and GMA_LLIM
-    if (*uk > GMA_HLIM)      *uk = GMA_HLIM;
-    else if (*uk < GMA_LLIM) *uk = GMA_LLIM;
+    // limit u[k] to maximum and minimum values
+    if (*uk > pid_max)      *uk = pid_max;
+    else if (*uk < pid_min) *uk = pid_min;
 
     yk_2  = yk_1; // y[k-2] = y[k-1]
     yk_1  = yk;   // y[k-1] = y[k]
 } // pid_ctrl()
 
-
+void pid_auto_tuning(void)
+{
+} // pid_auto_tuning()

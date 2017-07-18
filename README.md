@@ -31,11 +31,11 @@ The main-PCB contains the microcontroller and the temperaturesensor interface el
 
 # C100 Features after upgrade
 ---------------------------
-- All functionality as found in the [STC1000p firmware](https://github.com/Emile666/stc1000_stm8/).
+- Menu functionality as found in the [STC1000p firmware](https://github.com/Emile666/stc1000_stm8/)
 - Alarm relay output added
 - Reliable and accurate temperature interface, both for a K-type thermocouple as well as for a PT100 element
-- Wireless communication via a **nRF24L01+** device
-- **I<sup>2</sup>C**-interface available for a DS3231 Real-Time Clock (RTC) interface (so you can have date and time in your C100)
+- Wireless communication via a **nRF24L01+** device (not implemented yet)
+- **I<sup>2</sup>C**-interface available for a DS3231 Real-Time Clock (RTC) interface, so you can have date and time in your C100 (not implemented yet)
 - Both a K-type thermocouple and a PT100 are supported. Not at the same time, but if you replace a thermocouple for a PT100 sensor, this will work without further hardware modifications. Which sensor is connected, is detected automatically by the firmware.
 
 Hardware Upgrade

@@ -33,7 +33,7 @@
 #include <stdbool.h>
 #include "c100_pid_main.h"
 #include "eep.h"
-//#include "pid.h"
+#include "pid.h"
 
 // Define limits for temperatures in Fahrenheit and Celsius
 #define TEMP_MAX_F	      (2500)
@@ -53,11 +53,6 @@
 #define TEMP_HYST_2_MAX_C ( 250)
 #define SP_ALARM_MIN_C	  (-400)
 #define SP_ALARM_MAX_C	  ( 400)
-
-// Default values
-#define DEFAULT_SP	       (200)
-#define DEFAULT_hy	        (50)
-#define DEFAULT_hy2	       (100)
 
 //---------------------------------------------------------------------------
 // Basic defines for EEPROM config addresses
@@ -106,18 +101,15 @@ enum e_item_type
 // 	name, LED data 10, LED data 1, LED data 01, min value, max value, default value
 //
 // SP	Set setpoint	                                 -40 to 140°C or -40 to 250°F
-// hy	Set hysteresis                                   0.0 to 5.0°C or 0.0 to 10.0°F
-// hy2	Set hysteresis for 2nd temp probe	             0.0 to 25.0°C or 0.0 to 50.0°F
+// hy	Set hysteresis for thermostat control            0.0 to 5.0°C or 0.0 to 10.0°F
 // tc	Set temperature correction for thermocouple      -5.0 to 5.0°C or -10.0 to 10.0°F
 // tc2	Set temperature correction for PT100 sensor      -5.0 to 5.0°C or -10.0 to 10.0°F
 // SA	Setpoint alarm	                                 0 = off, -40 to 40°C or -80 to 80°F
 // St	Set current profile step	                     0 to 8
 // dh	Set current profile duration	                 0 to 999 hours
-// cd	Set cooling delay	                             0 to 60 minutes
-// hd	Set heating delay	                             0 to 60 minutes
 // rP	Ramping	                                         0 = off, 1 = on
 // CF	Set Celsius of Fahrenheit temperature display    0 = Celsius, 1 = Fahrenheit
-// Pb2	Enable 2nd temp probe for thermostat control	 0 = off, 1 = on
+// At	Enable Auto-Tuning	                             0 = off, 1 = on
 // HrS	Control and Times in minutes or hours	         0 = minutes, 1 = hours
 // Hc   Kc parameter for PID controller in %/°C          -9999..9999, >0: heating loop, <0: cooling loop 
 // ti   Ti parameter for PID controller in seconds       0..9999 
@@ -126,24 +118,21 @@ enum e_item_type
 // rn	Set run mode	                                 Pr0 to Pr5 and th (6)
 //-----------------------------------------------------------------------------
 #define MENU_DATA(_) \
-	_(SP, 	LED_S, 	LED_P, 	LED_OFF, t_temperature,	DEFAULT_SP)	    \
-	_(hy, 	LED_h, 	LED_y, 	LED_OFF, t_hyst_1,	    DEFAULT_hy) 	\
-	_(hy2, 	LED_h, 	LED_y, 	LED_2, 	 t_hyst_2, 	    DEFAULT_hy2)    \
-	_(tc, 	LED_t, 	LED_c, 	LED_OFF, t_tempdiff,	 3)		        \
-	_(tc2, 	LED_t, 	LED_c, 	LED_2, 	 t_tempdiff,	-2)		        \
-	_(SA, 	LED_S, 	LED_A, 	LED_OFF, t_sp_alarm,	 0)		        \
-	_(St, 	LED_S, 	LED_t, 	LED_OFF, t_step,	     0)		        \
-	_(dh, 	LED_d, 	LED_h, 	LED_OFF, t_duration,	 0)		        \
-	_(cd, 	LED_c, 	LED_d, 	LED_OFF, t_delay,	     5)		        \
-	_(hd, 	LED_h, 	LED_d, 	LED_OFF, t_delay,	     2)		        \
-	_(rP, 	LED_r, 	LED_P, 	LED_OFF, t_boolean,	     1)		        \
-	_(CF, 	LED_C, 	LED_F, 	LED_OFF, t_boolean,	     0)		        \
-	_(Pb2, 	LED_P, 	LED_b, 	LED_2, 	 t_boolean,	     0)		        \
-	_(HrS, 	LED_H, 	LED_r, 	LED_S, 	 t_boolean,	     1)		        \
-	_(Hc, 	LED_H, 	LED_c, 	LED_OFF, t_parameter,	80)		        \
-	_(Ti, 	LED_t, 	LED_I, 	LED_OFF, t_parameter,  280)		        \
-	_(Td, 	LED_t, 	LED_d, 	LED_OFF, t_parameter,   20)		        \
-	_(Ts, 	LED_t, 	LED_S, 	LED_OFF, t_parameter,    0)		        \
+	_(SP, 	LED_S, 	LED_P, 	LED_OFF, t_temperature,	200)    \
+	_(hy, 	LED_h, 	LED_y, 	LED_OFF, t_hyst_1,	      5)    \
+	_(tc, 	LED_t, 	LED_c, 	LED_OFF, t_tempdiff, 	  3)    \
+	_(tc2, 	LED_t, 	LED_c, 	LED_2, 	 t_tempdiff,	 -2)    \
+	_(SA, 	LED_S, 	LED_A, 	LED_OFF, t_sp_alarm,	  0)    \
+	_(St, 	LED_S, 	LED_t, 	LED_OFF, t_step,	      0)    \
+	_(dh, 	LED_d, 	LED_h, 	LED_OFF, t_duration,	  0)    \
+	_(rP, 	LED_r, 	LED_P, 	LED_OFF, t_boolean,	      1)    \
+	_(CF, 	LED_C, 	LED_F, 	LED_OFF, t_boolean,	      0)    \
+	_(At, 	LED_A, 	LED_t, 	LED_OFF, t_boolean,	      0)    \
+	_(HrS, 	LED_H, 	LED_r, 	LED_S, 	 t_boolean,	      1)    \
+	_(Hc, 	LED_H, 	LED_c, 	LED_OFF, t_parameter,	 80)    \
+	_(Ti, 	LED_t, 	LED_I, 	LED_OFF, t_parameter,   280)    \
+	_(Td, 	LED_t, 	LED_d, 	LED_OFF, t_parameter,    20)    \
+	_(Ts, 	LED_t, 	LED_S, 	LED_OFF, t_parameter,     0)    \
 	_(rn, 	LED_r, 	LED_u, 	LED_n  , t_runmode,    NO_OF_PROFILES)
 
 #define ENUM_VALUES(name,led10ch,led1ch,led01ch,type,default_value) name,
@@ -238,5 +227,5 @@ int16_t  check_config_value(int16_t config_value, uint8_t eeadr);
 void     read_buttons(void);
 void     menu_fsm(void);
 void     temperature_control(void);
-void     pid_control(void);
+void     pid_control(bool init);
 #endif

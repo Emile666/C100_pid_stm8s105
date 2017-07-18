@@ -29,7 +29,8 @@
 #include "spi.h"
 
 // Global variables
-bool      relay_alarm1  = false;   // true = sound alarm
+bool      auto_tuning  = false;    // true = PID auto-tuning
+bool      relay_alarm1 = false;    // true = sound alarm
 uint16_t  leds_out;                // Four LEDs on frontpanel (ALM1, OUT1, ALM2, AT)
 int16_t   temp_tc_pt;              // Temperature in E-1 °C from TC or PT100
 int32_t   temp_tc_fil = TEMP_ROOM; // Filtered temperature in E-1 °C from TC
@@ -51,8 +52,6 @@ extern uint8_t  sensor2_selected; // DOWN button pressed < 3 sec. shows 2nd temp
 extern bool     minutes;          // timing control: false = hours, true = minutes
 extern bool     menu_is_idle;     // No menus in STD active
 extern bool     fahrenheit;       // false = Celsius, true = Fahrenheit
-extern uint16_t cooling_delay;   // Initial cooling delay
-extern uint16_t heating_delay;   // Initial heating delay
 extern int16_t  setpoint;        // local copy of SP variable
 extern int16_t  kc;              // Parameter value for Kc value in %/°C
 extern uint8_t  ts;              // Parameter value for sample time [sec.]
@@ -335,14 +334,16 @@ void pid_to_time(void)
     static uint8_t std_ptt = 1; // state [on, off]
     static uint8_t ltmr    = 0; // #times to set S3 to 0
     static uint8_t htmr    = 0; // #times to set S3 to 1
+    int16_t pid = pid_out;      // copy of pid_out 
     uint8_t x;                  // temp. variable
      
-    x = (uint8_t)(pid_out >> 3); // divide by 8 to give 1.25 * pid_out
+    if (pid < 0) pid = -pid;
+    x = (uint8_t)(pid >> 3); // divide by 8 to give 1.25 * pid_out
     
     switch (std_ptt)
     {
         case 0: // OFF
-            if (ts == 0) std_ptt = 2;
+            if (!pwr_on) std_ptt = 2;
             else if (ltmr == 0)
             {   // End of low-time
                 htmr = x; // htmr = 1.25 * pid_out
@@ -353,7 +354,7 @@ void pid_to_time(void)
             leds_out &= ~LED_OUT1; // disable OUT1 LED
             break;
         case 1: // ON
-            if (ts == 0) std_ptt = 2;
+            if (!pwr_on) std_ptt = 2;
             else if (htmr == 0)
             {   // End of high-time
                 ltmr = 125 - x; // ltmr = 1.25 * (100 - pid_out)
@@ -364,9 +365,9 @@ void pid_to_time(void)
             leds_out |= LED_OUT1; // enable OUT1 LED
             break;
         case 2: // DISABLED
-            SSR_OFF; // S3 output = 0;
+            SSR_OFF; // SSR output = 0;
             leds_out &= ~LED_OUT1; // disable OUT1 LED
-            if (ts > 0) std_ptt = 1;
+            if (pwr_on) std_ptt = 1;
             break;
     } // switch
 } // pid_to_time()
@@ -425,13 +426,14 @@ void std_task(void)
 
 /*-----------------------------------------------------------------------------
   Purpose  : This task is called every second and contains the main control
-             task for the device. It also calls temperature_control().
+             task for the device. 
   Variables: -
   Returns  : -
   ---------------------------------------------------------------------------*/
 void ctrl_task(void)
 {
    int16_t sa, diff;
+   bool    pid_init = false;
    
     if (eeprom_read_config(EEADR_MENU_ITEM(CF))) // true = Fahrenheit
          fahrenheit = true;
@@ -439,6 +441,9 @@ void ctrl_task(void)
     if (eeprom_read_config(EEADR_MENU_ITEM(HrS))) // true = hours
          minutes = false; // control-timing is in hours 
     else minutes = true;  // control-timing is in minutes
+    if (eeprom_read_config(EEADR_MENU_ITEM(At))) // true = Auto-Tuning active
+         auto_tuning = true;
+    else auto_tuning = false;
 
    // Start with updating the alarm
    if (temp_err)
@@ -451,14 +456,12 @@ void ctrl_task(void)
           bot_100 = LED_n; bot_10  = LED_o;
           bot_1   = LED_P; bot_01  = LED_b; // noPb = no Probe
        } // if
-       cooling_delay = heating_delay = 60;
    } else {
        relay_alarm1 = false; // reset the piezo buzzer
        if(((uint8_t)eeprom_read_config(EEADR_MENU_ITEM(rn))) < THERMOSTAT_MODE)
             leds_out |=  (LED_AT | LED_AT_BLINK); // Indicate profile mode
        else leds_out &= ~(LED_AT | LED_AT_BLINK);
  
-       ts = eeprom_read_config(EEADR_MENU_ITEM(Ts)); // Read Ts [seconds]
        sa = eeprom_read_config(EEADR_MENU_ITEM(SA)); // Show Alarm parameter
        if (sa)
        {
@@ -475,23 +478,38 @@ void ctrl_task(void)
                  relay_alarm1 = (diff >= sa); // enable relay if diff is large
             } // if
        } // if
-       if (ts == 0)              // PID Ts parameter is 0?
+       if (ts != eeprom_read_config(EEADR_MENU_ITEM(Ts))) // Read Ts [seconds]
        {
-            init_temp_delays();  // Initialise Heating and Cooling delay
-            pid_out = 0;         // Disable PID-output
+           pid_init = true;
+           ts       = eeprom_read_config(EEADR_MENU_ITEM(Ts));
        } // if
-       else pid_control();       // Run PID controller
-       if (menu_is_idle)         // show temperature if menu is idle
+       if (ts == 0)
+            temperature_control(); // Run thermostat if TS == 0
+       else if (auto_tuning)
+            pid_auto_tuning();     // Run PID Auto-Tuning algorithm
+       else pid_control(pid_init); // Run PID controller
+
+       if (menu_is_idle)           // show temperature if menu is idle
        {
-            value_to_led(temp_tc_pt,LEDS_TEMP,ROW_TOP); // display temperature on top-row
-            value_to_led(setpoint  ,LEDS_TEMP,ROW_BOT); // display setpoint on bottom-row
+           switch (sensor2_selected)
+           {
+            case 0:
+                 value_to_led(temp_tc_pt,LEDS_TEMP,ROW_TOP); // display temperature on top-row
+                 value_to_led(setpoint  ,LEDS_TEMP,ROW_BOT); // display setpoint on bottom-row
+                 break;
+            case 1:
+                 top_100 = LED_P; top_10 = LED_I;
+                 top_1   = LED_d; top_01 = LED_EQ;
+                 value_to_led(pid_out, LEDS_TEMP,ROW_BOT); // display pid_out on bottom row
+                 break;
+           } // switch
        } // if
    } // else
    if (relay_alarm1)
    {
         leds_out |= LED_ALM1 | LED_ALM1_BLINK;
         ALARM_ON;
-   }
+   } // if
    else
    {
        leds_out &= ~(LED_ALM1 | LED_ALM1_BLINK);

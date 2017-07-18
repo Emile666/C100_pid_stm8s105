@@ -1,26 +1,26 @@
 
-Map of Debug\c100_pid_stm8s105.sm8 from link file Debug\c100_pid_stm8s105.lkf - Mon Jul 17 16:03:52 2017
+Map of Debug\c100_pid_stm8s105.sm8 from link file Debug\c100_pid_stm8s105.lkf - Tue Jul 18 14:45:38 2017
 
 
                                --------
                                Segments
                                --------
 
-start 00008080 end 0000810a length   138 segment .const
-start 00008146 end 0000a1b5 length  8303 segment .text
-start 00004000 end 0000410c length   268 segment .eeprom
-start 00000000 end 0000002e length    46 segment .bsct, initialized
-start 00008117 end 00008145 length    46 segment .bsct, from
-start 0000002e end 000000cf length   161 segment .ubsct
-start 0000cf:0 end 0000cf:6 length     6 segment .bit, initialized
-start 00008145 end 00008146 length     1 segment .bit, from
-start 000000d0 end 000000d0 length     0 segment .share
+start 00008080 end 000080fe length   126 segment .const
+start 00008136 end 0000a282 length  8524 segment .text
+start 00004000 end 00004106 length   262 segment .eeprom
+start 00000000 end 0000002a length    42 segment .bsct, initialized
+start 0000810b end 00008135 length    42 segment .bsct, from
+start 0000002a end 000000cd length   163 segment .ubsct
+start 0000cd:0 end 0000ce:0 length     8 segment .bit, initialized
+start 00008135 end 00008136 length     1 segment .bit, from
+start 000000ce end 000000ce length     0 segment .share
 start 00000100 end 00000100 length     0 segment .data
 start 00000100 end 00000100 length     0 segment .bss
 start 00000000 end 000009ed length  2541 segment .info.
-start 00000000 end 0000af89 length 44937 segment .debug
+start 00000000 end 0000b003 length 45059 segment .debug
 start 00008000 end 00008080 length   128 segment .const
-start 0000810a end 00008117 length    13 segment .init
+start 000080fe end 0000810b length    13 segment .init
 
 
                                -------
@@ -28,193 +28,193 @@ start 0000810a end 00008117 length    13 segment .init
                                -------
 
 C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8:
-start 00008146 end 00008196 length    80 section .text
+start 00008136 end 00008186 length    80 section .text
 start 00000100 end 00000100 length     0 section .bss
-start 0000002e end 0000002e length     0 section .ubsct
+start 0000002a end 0000002a length     0 section .ubsct
 start 00000000 end 0000002f length    47 section .info.
 
 Debug\c100_pid_main.o:
-start 00008196 end 000089f3 length  2141 section .text
+start 00008186 end 00008a53 length  2253 section .text
 start 00000000 end 00000013 length    19 section .bsct
-start 0000002e end 00000037 length     9 section .ubsct
-start 00000000 end 00002223 length  8739 section .debug
+start 0000002a end 00000033 length     9 section .ubsct
+start 00000000 end 00002283 length  8835 section .debug
 start 0000002f end 000000a1 length   114 section .info.
-start 0000cf:0 end 0000cf:2 length     2 section .bit
+start 0000cd:0 end 0000cd:3 length     3 section .bit
 start 00008080 end 00008090 length    16 section .const
 
 Debug\delay.o:
-start 000089f3 end 00008ad0 length   221 section .text
+start 00008a53 end 00008b30 length   221 section .text
 start 00000013 end 00000017 length     4 section .bsct
-start 00002223 end 00003f99 length  7542 section .debug
+start 00002283 end 00003ff9 length  7542 section .debug
 start 000000a1 end 0000010b length   106 section .info.
 
 Debug\eep.o:
-start 00008ad0 end 00008b41 length   113 section .text
-start 00003f99 end 00005c32 length  7321 section .debug
+start 00008b30 end 00008ba1 length   113 section .text
+start 00003ff9 end 00005c92 length  7321 section .debug
 start 0000010b end 00000173 length   104 section .info.
 
 Debug\pid.o:
-start 00008b41 end 00008c45 length   260 section .text
+start 00008ba1 end 00008cb8 length   279 section .text
 start 00000017 end 0000001e length     7 section .bsct
-start 00000037 end 00000047 length    16 section .ubsct
-start 00005c32 end 00005ecb length   665 section .debug
+start 00000033 end 00000047 length    20 section .ubsct
+start 00005c92 end 00005fa6 length   788 section .debug
 start 00000173 end 000001db length   104 section .info.
 
 Debug\scheduler.o:
-start 00008c45 end 00008eaa length   613 section .text
+start 00008cb8 end 00008f1d length   613 section .text
 start 0000001e end 0000001f length     1 section .bsct
 start 00000047 end 000000b0 length   105 section .ubsct
-start 00005ecb end 00006449 length  1406 section .debug
+start 00005fa6 end 00006524 length  1406 section .debug
 start 000001db end 00000249 length   110 section .info.
 
 Debug\spi.o:
-start 00008eaa end 0000913e length   660 section .text
+start 00008f1d end 000091b1 length   660 section .text
 start 000000b0 end 000000b1 length     1 section .ubsct
-start 00006449 end 00008477 length  8238 section .debug
+start 00006524 end 00008552 length  8238 section .debug
 start 00000249 end 000002b1 length   104 section .info.
 start 00008090 end 0000809c length    12 section .const
 
 Debug\stc1000p_lib.o:
-start 0000913e end 00009c27 length  2793 section .text
-start 0000001f end 0000002e length    15 section .bsct
-start 000000b1 end 000000c5 length    20 section .ubsct
-start 00008477 end 0000ae1e length 10663 section .debug
+start 000091b1 end 00009cf4 length  2883 section .text
+start 0000001f end 0000002a length    11 section .bsct
+start 000000b1 end 000000c3 length    18 section .ubsct
+start 00008552 end 0000ae98 length 10566 section .debug
 start 000002b1 end 00000322 length   113 section .info.
-start 0000809c end 0000810a length   110 section .const
-start 00004000 end 0000410c length   268 section .eeprom
-start 0000cf:2 end 0000cf:6 length     4 section .bit
+start 0000809c end 000080fe length    98 section .const
+start 00004000 end 00004106 length   262 section .eeprom
+start 0000cd:3 end 0000ce:0 length     5 section .bit
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strcmp0.o:
-start 00009c27 end 00009c3a length    19 section .text
+start 00009cf4 end 00009d07 length    19 section .text
 start 00000322 end 00000350 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strncp.o:
-start 00009c3a end 00009c60 length    38 section .text
+start 00009d07 end 00009d2d length    38 section .text
 start 00000350 end 000003c4 length   116 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o:
-start 00009c60 end 00009c74 length    20 section .text
+start 00009d2d end 00009d41 length    20 section .text
 start 000003c4 end 000003f3 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o:
-start 00009c74 end 00009d51 length   221 section .text
+start 00009d41 end 00009e1e length   221 section .text
 start 000003f3 end 00000421 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fgmul.o:
-start 00009d51 end 00009d59 length     8 section .text
+start 00009e1e end 00009e26 length     8 section .text
 start 00000421 end 00000450 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fmul.o:
-start 00009d59 end 00009e2e length   213 section .text
+start 00009e26 end 00009efb length   213 section .text
 start 00000450 end 0000047e length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ftol.o:
-start 00009e2e end 00009e90 length    98 section .text
+start 00009efb end 00009f5d length    98 section .text
 start 0000047e end 000004ac length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o:
-start 00009e90 end 00009e9e length    14 section .text
+start 00009f5d end 00009f6b length    14 section .text
 start 000004ac end 000004db length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladc.o:
-start 00009e9e end 00009eaf length    17 section .text
+start 00009f6b end 00009f7c length    17 section .text
 start 000004db end 00000509 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o:
-start 00009eaf end 00009ec7 length    24 section .text
+start 00009f7c end 00009f94 length    24 section .text
 start 00000509 end 00000537 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o:
-start 00009ec7 end 00009ee7 length    32 section .text
+start 00009f94 end 00009fb4 length    32 section .text
 start 00000537 end 00000565 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadc.o:
-start 00009ee7 end 00009ef7 length    16 section .text
+start 00009fb4 end 00009fc4 length    16 section .text
 start 00000565 end 00000594 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o:
-start 00009ef7 end 00009f0e length    23 section .text
+start 00009fc4 end 00009fdb length    23 section .text
 start 00000594 end 000005c3 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lglsh.o:
-start 00009f0e end 00009f1c length    14 section .text
+start 00009fdb end 00009fe9 length    14 section .text
 start 000005c3 end 000005f2 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o:
-start 00009f1c end 00009f33 length    23 section .text
+start 00009fe9 end 0000a000 length    23 section .text
 start 000005f2 end 00000620 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o:
-start 00009f33 end 00009f41 length    14 section .text
+start 0000a000 end 0000a00e length    14 section .text
 start 00000620 end 0000064f length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o:
-start 00009f41 end 00009fcc length   139 section .text
+start 0000a00e end 0000a099 length   139 section .text
 start 0000064f end 0000067d length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lreg.o:
-start 000000c5 end 000000c9 length     4 section .ubsct
+start 000000c3 end 000000c7 length     4 section .ubsct
 start 0000067d end 000006ab length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lrsh.o:
-start 00009fcc end 00009fdb length    15 section .text
+start 0000a099 end 0000a0a8 length    15 section .text
 start 000006ab end 000006d9 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o:
-start 00009fdb end 00009ff3 length    24 section .text
+start 0000a0a8 end 0000a0c0 length    24 section .text
 start 000006d9 end 00000707 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o:
-start 00009ff3 end 0000a005 length    18 section .text
+start 0000a0c0 end 0000a0d2 length    18 section .text
 start 00000707 end 00000735 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o:
-start 0000a005 end 0000a019 length    20 section .text
+start 0000a0d2 end 0000a0e6 length    20 section .text
 start 00000735 end 00000764 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o:
-start 0000a019 end 0000a104 length   235 section .text
+start 0000a0e6 end 0000a1d1 length   235 section .text
 start 00000764 end 00000792 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o:
-start 0000a104 end 0000a117 length    19 section .text
+start 0000a1d1 end 0000a1e4 length    19 section .text
 start 00000792 end 000007c1 length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o:
-start 0000a117 end 0000a12c length    21 section .text
+start 0000a1e4 end 0000a1f9 length    21 section .text
 start 000007c1 end 000007ef length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o:
-start 0000a12c end 0000a13b length    15 section .text
+start 0000a1f9 end 0000a208 length    15 section .text
 start 000007ef end 0000081e length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o:
-start 0000a13b end 0000a14d length    18 section .text
+start 0000a208 end 0000a21a length    18 section .text
 start 0000081e end 0000084c length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)uitof.o:
-start 0000a14d end 0000a171 length    36 section .text
+start 0000a21a end 0000a23e length    36 section .text
 start 0000084c end 0000087b length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o:
-start 0000a171 end 0000a178 length     7 section .text
+start 0000a23e end 0000a245 length     7 section .text
 start 0000087b end 000008aa length    47 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o:
-start 0000a178 end 0000a1b4 length    60 section .text
+start 0000a245 end 0000a281 length    60 section .text
 start 000008aa end 000008d8 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)xreg.o:
-start 000000c9 end 000000cc length     3 section .ubsct
+start 000000c7 end 000000ca length     3 section .ubsct
 start 000008d8 end 00000906 length    46 section .info.
 
 (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)yreg.o:
-start 000000cc end 000000cf length     3 section .ubsct
+start 000000ca end 000000cd length     3 section .ubsct
 start 00000906 end 00000934 length    46 section .info.
 
 Debug\stm8_interrupt_vector.o:
-start 0000a1b4 end 0000a1b5 length     1 section .text
-start 0000ae1e end 0000af89 length   363 section .debug
+start 0000a281 end 0000a282 length     1 section .text
+start 0000ae98 end 0000b003 length   363 section .debug
 start 00000934 end 000009ae length   122 section .info.
 start 00008000 end 00008080 length   128 section .const
 
@@ -226,11 +226,11 @@ start 00008000 end 00008080 length   128 section .const
 Debug\c100_pid_main.o:
 _TIM2_UPD_OVF_IRQHandler  >   24   (11)
 _adc_task                     48   (14)
-_ctrl_task                    39   (8)
+_ctrl_task                    41   (9)
 _initialise_system_clock       2   (2)
 _main                     >   55   (4)
 _multiplexer                  13   (3)
-_pid_to_time                   3   (3)
+_pid_to_time                   5   (5)
 _prfl_task                    32   (2)
 _set_hc164                     6   (6)
 _set_one_led                  10   (10)
@@ -250,6 +250,7 @@ _eeprom_write_config          13   (7)
 
 Debug\pid.o:
 _init_pid                     29   (15)
+_pid_auto_tuning               2   (2)
 _pid_ctrl                     18   (12)
 
 Debug\scheduler.o:
@@ -280,11 +281,11 @@ _divu10                       12   (12)
 _init_temp_delays              8   (2)
 _menu_fsm                     34   (4)
 _min_to_sec               >   10   (4)
-_pid_control                  31   (2)
+_pid_control                  32   (3)
 _prx_to_led                    2   (2)
 _range                         8   (8)
 _read_buttons                 10   (4)
-_temperature_control      >   10   (2)
+_temperature_control          10   (2)
 _update_profile               30   (17)
 _val_to_bcd                   10   (10)
 _value_to_led                 30   (18)
@@ -358,49 +359,49 @@ Stack size: 79
   38 > _set_task_time_period: (8)
   39      + _strcmp --> 9
        
-  40 > _temperature_control: (2)
-  41      + _init_temp_delays: (2)
-  42      |    + _eeprom_read_config --> 37
-          | 
-       
-  43 > f_NonHandledInterrupt: (6)
+  40 > f_NonHandledInterrupt: (6)
 
-  44   _adc_task: (14)
-  45      + _eeprom_read_config --> 37
-  46      + _max31855_read: (12)
-  47      |    + _delay_usec --> 25
-  48      |    + _spi_read: (4)
-  49      |    |    + _delay_usec --> 25
+  41   _adc_task: (14)
+  42      + _eeprom_read_config --> 37
+  43      + _max31855_read: (12)
+  44      |    + _delay_usec --> 25
+  45      |    + _spi_read: (4)
+  46      |    |    + _delay_usec --> 25
           |    | 
-  50      |    + _spi_write --> 27
+  47      |    + _spi_write --> 27
           | 
-  51      + _max31865_read: (11)
-  52      |    + _max31865_read16: (5)
-  53      |    |    + _delay_usec --> 25
-  54      |    |    + _spi_read --> 48
-  55      |    |    + _spi_write --> 27
+  48      + _max31865_read: (11)
+  49      |    + _max31865_read16: (5)
+  50      |    |    + _delay_usec --> 25
+  51      |    |    + _spi_read --> 45
+  52      |    |    + _spi_write --> 27
           |    | 
-  56      |    + _max31865_read8: (4)
-  57      |    |    + _delay_usec --> 25
-  58      |    |    + _spi_read --> 48
-  59      |    |    + _spi_write --> 27
+  53      |    + _max31865_read8: (4)
+  54      |    |    + _delay_usec --> 25
+  55      |    |    + _spi_read --> 45
+  56      |    |    + _spi_write --> 27
           |    | 
-  60      |    + _max31865_write8 --> 24
+  57      |    + _max31865_write8 --> 24
           | 
        
-  61   _add_task --> 13
+  58   _add_task --> 13
 
-  62   _check_config_value: (10)
-  63      + _range: (8)
+  59   _check_config_value: (10)
+  60      + _range: (8)
        
-  64   _ctrl_task: (8)
-  65      + _eeprom_read_config --> 37
-  66      + _init_temp_delays --> 41
-  67      + _pid_control: (2)
-  68      |    + _eeprom_read_config --> 37
-  69      |    + _init_pid: (15)
-  70      |    + _init_temp_delays --> 41
-  71      |    + _pid_ctrl: (12)
+  61   _ctrl_task: (9)
+  62      + _eeprom_read_config --> 37
+  63      + _pid_auto_tuning: (2)
+  64      + _pid_control: (3)
+  65      |    + _eeprom_read_config --> 37
+  66      |    + _init_pid: (15)
+  67      |    + _init_temp_delays: (2)
+  68      |    |    + _eeprom_read_config --> 37
+          |    | 
+  69      |    + _pid_ctrl: (12)
+          | 
+  70      + _temperature_control: (2)
+  71      |    + _init_temp_delays --> 67
           | 
   72      + _value_to_led: (18)
   73      |    + _divu10: (12)
@@ -420,26 +421,26 @@ Stack size: 79
   80   _eeprom_write_config: (7)
   81      + _eeprom_read_config --> 37
        
-  82   _init_pid --> 69
+  82   _init_pid --> 66
 
-  83   _init_temp_delays --> 41
+  83   _init_temp_delays --> 67
 
   84   _initialise_system_clock --> 20
 
-  85   _max31855_read --> 46
+  85   _max31855_read --> 43
 
   86   _max31865_init --> 21
 
-  87   _max31865_read --> 51
+  87   _max31865_read --> 48
 
-  88   _max31865_read16 --> 52
+  88   _max31865_read16 --> 49
 
-  89   _max31865_read8 --> 56
+  89   _max31865_read8 --> 53
 
   90   _max31865_write8 --> 24
 
   91   _menu_fsm: (4)
-  92      + _check_config_value --> 62
+  92      + _check_config_value --> 59
   93      + _eeprom_read_config --> 37
   94      + _eeprom_write_config --> 80
   95      + _prx_to_led: (2)
@@ -449,59 +450,63 @@ Stack size: 79
 
   98   _multiplexer --> 3
 
-  99   _pid_control --> 67
+  99   _pid_auto_tuning --> 63
 
- 100   _pid_ctrl --> 71
+ 100   _pid_control --> 64
 
- 101   _pid_to_time: (3)
+ 101   _pid_ctrl --> 69
 
- 102   _prfl_task: (2)
- 103      + _update_profile: (17)
- 104      |    + _eeprom_read_config --> 37
- 105      |    + _eeprom_write_config --> 80
+ 102   _pid_to_time: (5)
+
+ 103   _prfl_task: (2)
+ 104      + _update_profile: (17)
+ 105      |    + _eeprom_read_config --> 37
+ 106      |    + _eeprom_write_config --> 80
           | 
        
- 106   _prx_to_led --> 95
+ 107   _prx_to_led --> 95
 
- 107   _range --> 63
+ 108   _range --> 60
 
- 108   _read_buttons: (4)
- 109      + _set_hc164 --> 4
+ 109   _read_buttons: (4)
+ 110      + _set_hc164 --> 4
        
- 110   _scheduler_init --> 29
+ 111   _scheduler_init --> 29
 
- 111   _scheduler_isr --> 6
+ 112   _scheduler_isr --> 6
 
- 112   _set_hc164 --> 4
+ 113   _set_hc164 --> 4
 
- 113   _set_one_led --> 5
+ 114   _set_one_led --> 5
 
- 114   _setup_gpio_ports --> 30
+ 115   _setup_gpio_ports --> 30
 
- 115   _setup_timer2 --> 31
+ 116   _setup_timer2 --> 31
 
- 116   _spi_init --> 32
+ 117   _spi_init --> 32
 
- 117   _spi_read --> 48
+ 118   _spi_read --> 45
 
- 118   _spi_write --> 27
+ 119   _spi_write --> 27
 
- 119   _std_task: (2)
- 120      + _menu_fsm --> 91
- 121      + _pid_to_time --> 101
- 122      + _read_buttons --> 108
+ 120   _std_task: (2)
+ 121      + _menu_fsm --> 91
+ 122      + _pid_to_time --> 102
+ 123      + _read_buttons --> 109
        
- 123   _strcmp --> 9
+ 124   _strcmp --> 9
 
- 124   _strncpy --> 14
+ 125   _strncpy --> 14
 
- 125   _tmr2_val --> 26
+ 126   _temperature_control --> 70
 
- 126   _update_profile --> 103
+ 127   _tmr2_val --> 26
 
- 127   _val_to_bcd --> 74
+ 128   _update_profile --> 104
 
- 128   _value_to_led --> 72
+ 129   _val_to_bcd --> 74
+
+ 130   _value_to_led --> 72
 
 
 
@@ -640,7 +645,7 @@ _SPI_CR1                   00005200   defined in Debug\c100_pid_main.o
 _SPI_CR2                   00005201   defined in Debug\c100_pid_main.o
 _SPI_CRCPR                 00005205   defined in Debug\c100_pid_main.o
 _SPI_DR                    00005204   defined in Debug\c100_pid_main.o
-_SPI_Handler               00008eaa   defined in Debug\spi.o section .text
+_SPI_Handler               00008f1d   defined in Debug\spi.o section .text
                                       used in Debug\stm8_interrupt_vector.o
 _SPI_ICR                   00005202   defined in Debug\c100_pid_main.o
 _SPI_RXCRCR                00005206   defined in Debug\c100_pid_main.o
@@ -700,7 +705,7 @@ _TIM2_IER                  00005301   defined in Debug\c100_pid_main.o
 _TIM2_PSCR                 0000530c   defined in Debug\c100_pid_main.o
 _TIM2_SR1                  00005302   defined in Debug\c100_pid_main.o
 _TIM2_SR2                  00005303   defined in Debug\c100_pid_main.o
-_TIM2_UPD_OVF_IRQHandler   00008522   defined in Debug\c100_pid_main.o section .text
+_TIM2_UPD_OVF_IRQHandler   00008512   defined in Debug\c100_pid_main.o section .text
                                       used in Debug\stm8_interrupt_vector.o
 _TIM3_ARRH                 0000532b   defined in Debug\c100_pid_main.o
 _TIM3_ARRL                 0000532c   defined in Debug\c100_pid_main.o
@@ -739,12 +744,12 @@ _UART2_PSCR                0000524b   defined in Debug\c100_pid_main.o
 _UART2_SR                  00005240   defined in Debug\c100_pid_main.o
 _WWDG_CR                   000050d1   defined in Debug\c100_pid_main.o
 _WWDG_WR                   000050d2   defined in Debug\c100_pid_main.o
-__buttons                  00000027   defined in Debug\stc1000p_lib.o section .bsct, initialized
+__buttons                  00000023   defined in Debug\stc1000p_lib.o section .bsct, initialized
 __endmem                   000005ff   defined in command file
                                       *** not used ***
-__endzp                    000000cf   defined in command file section .ubsct
+__endzp                    000000cd   defined in command file section .ubsct
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
-__idesc__                  0000810a   defined in linker section .init
+__idesc__                  000080fe   defined in linker section .init
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
 __memory                   00000100   defined in command file section .bss
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
@@ -752,214 +757,216 @@ __stack                    000007ff   defined in command file
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
 __startmem                 00000100   defined in command file section .bss
                                       *** not used ***
-__stext                    00008146   defined in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8 section .text
+__stext                    00008136   defined in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8 section .text
                                       used in Debug\stm8_interrupt_vector.o
 __vectab                   00008000   defined in Debug\stm8_interrupt_vector.o section .const
-_adc_task                  000086e9   defined in Debug\c100_pid_main.o section .text
-_add_task                  00008cfa   defined in Debug\scheduler.o section .text
+_adc_task                  000086f2   defined in Debug\c100_pid_main.o section .text
+_add_task                  00008d6d   defined in Debug\scheduler.o section .text
                                       used in Debug\c100_pid_main.o
-_blink_tmr                 0000002e   defined in Debug\c100_pid_main.o section .ubsct
-_bot_01                    000000bd   defined in Debug\stc1000p_lib.o section .ubsct
+_auto_tuning               0000cd:0   defined in Debug\c100_pid_main.o section .bit, initialized
+_blink_tmr                 0000002a   defined in Debug\c100_pid_main.o section .ubsct
+_bot_01                    000000bb   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_bot_1                     000000be   defined in Debug\stc1000p_lib.o section .ubsct
+_bot_1                     000000bc   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_bot_10                    000000bf   defined in Debug\stc1000p_lib.o section .ubsct
+_bot_10                    000000bd   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_bot_100                   000000c0   defined in Debug\stc1000p_lib.o section .ubsct
+_bot_100                   000000be   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_check_config_value        00009453   defined in Debug\stc1000p_lib.o section .text
-_config_item               00000025   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_config_value              000000ba   defined in Debug\stc1000p_lib.o section .ubsct
-_cooling_delay             0000001f   defined in Debug\stc1000p_lib.o section .bsct, initialized
-                                      used in Debug\c100_pid_main.o
-_ctrl_task                 000087f5   defined in Debug\c100_pid_main.o section .text
-_curr_dur                  00000029   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_delay_msec                00008a09   defined in Debug\delay.o section .text
+_check_config_value        000094c6   defined in Debug\stc1000p_lib.o section .text
+_config_item               00000021   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_config_value              000000b8   defined in Debug\stc1000p_lib.o section .ubsct
+_ctrl_task                 000087fe   defined in Debug\c100_pid_main.o section .text
+_curr_dur                  00000025   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_delay_msec                00008a69   defined in Debug\delay.o section .text
                                       used in Debug\spi.o
-_delay_usec                00008aab   defined in Debug\delay.o section .text
+_delay_usec                00008b0b   defined in Debug\delay.o section .text
                                       used in Debug\spi.o
-_disable_task              00008df6   defined in Debug\scheduler.o section .text
-_dispatch_tasks            00008caf   defined in Debug\scheduler.o section .text
+_disable_task              00008e69   defined in Debug\scheduler.o section .text
+_dispatch_tasks            00008d22   defined in Debug\scheduler.o section .text
                                       used in Debug\c100_pid_main.o
-_divu10                    0000913e   defined in Debug\stc1000p_lib.o section .text
+_divu10                    000091b1   defined in Debug\stc1000p_lib.o section .text
 _eedata                    00004000   defined in Debug\stc1000p_lib.o section .eeprom
                                       used in Debug\c100_pid_main.o
-_eeprom_read_config        00008ad0   defined in Debug\eep.o section .text
+_eeprom_read_config        00008b30   defined in Debug\eep.o section .text
                                       used in Debug\c100_pid_main.o
                                               Debug\stc1000p_lib.o
-_eeprom_write_config       00008b07   defined in Debug\eep.o section .text
+_eeprom_write_config       00008b67   defined in Debug\eep.o section .text
                                       used in Debug\stc1000p_lib.o
-_enable_task               00008d9b   defined in Debug\scheduler.o section .text
-_exit                      00008194   defined in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8 section .text
-_fahrenheit                0000cf:4   defined in Debug\stc1000p_lib.o section .bit, initialized
+_enable_task               00008e0e   defined in Debug\scheduler.o section .text
+_exit                      00008184   defined in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8 section .text
+_fahrenheit                0000cd:5   defined in Debug\stc1000p_lib.o section .bit, initialized
                                       used in Debug\c100_pid_main.o
-_hc164_val                 00000032   defined in Debug\c100_pid_main.o section .ubsct
+_hc164_val                 0000002e   defined in Debug\c100_pid_main.o section .ubsct
                                       used in Debug\stc1000p_lib.o
-_heating_delay             00000021   defined in Debug\stc1000p_lib.o section .bsct, initialized
-                                      used in Debug\c100_pid_main.o
+_heating_loop              0000cd:7   defined in Debug\stc1000p_lib.o section .bit, initialized
 _hysteresis                000000b5   defined in Debug\stc1000p_lib.o section .ubsct
-_hysteresis2               000000b3   defined in Debug\stc1000p_lib.o section .ubsct
-_init_pid                  00008b41   defined in Debug\pid.o section .text
+_init_pid                  00008ba1   defined in Debug\pid.o section .text
                                       used in Debug\stc1000p_lib.o
-_init_temp_delays          00009b95   defined in Debug\stc1000p_lib.o section .text
-                                      used in Debug\c100_pid_main.o
-_initialise_system_clock   0000894f   defined in Debug\c100_pid_main.o section .text
+_init_temp_delays          00009c08   defined in Debug\stc1000p_lib.o section .text
+_initialise_system_clock   000089af   defined in Debug\c100_pid_main.o section .text
 _kc                        00000017   defined in Debug\pid.o section .bsct, initialized
                                       used in Debug\stc1000p_lib.o
 _kd                        0000003f   defined in Debug\pid.o section .ubsct
-_key_held_tmr              000000b9   defined in Debug\stc1000p_lib.o section .ubsct
+_key_held_tmr              000000b7   defined in Debug\stc1000p_lib.o section .ubsct
 _ki                        00000043   defined in Debug\pid.o section .ubsct
 _led_lookup                0000809c   defined in Debug\stc1000p_lib.o section .const
-_leds_out                  00000035   defined in Debug\c100_pid_main.o section .ubsct
+_leds_out                  00000031   defined in Debug\c100_pid_main.o section .ubsct
                                       used in Debug\stc1000p_lib.o
-_m_countdown               00000026   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_main                      00008986   defined in Debug\c100_pid_main.o section .text
+_m_countdown               00000022   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_main                      000089e6   defined in Debug\c100_pid_main.o section .text
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
-_max31855_read             00008f1b   defined in Debug\spi.o section .text
+_max31855_read             00008f8e   defined in Debug\spi.o section .text
                                       used in Debug\c100_pid_main.o
-_max31865_init             000090ce   defined in Debug\spi.o section .text
+_max31865_init             00009141   defined in Debug\spi.o section .text
                                       used in Debug\c100_pid_main.o
-_max31865_read             000090db   defined in Debug\spi.o section .text
+_max31865_read             0000914e   defined in Debug\spi.o section .text
                                       used in Debug\c100_pid_main.o
-_max31865_read16           0000905f   defined in Debug\spi.o section .text
-_max31865_read8            0000901b   defined in Debug\spi.o section .text
-_max31865_write16          000090a1   defined in Debug\spi.o section .text
-_max31865_write8           00009042   defined in Debug\spi.o section .text
+_max31865_read16           000090d2   defined in Debug\spi.o section .text
+_max31865_read8            0000908e   defined in Debug\spi.o section .text
+_max31865_write16          00009114   defined in Debug\spi.o section .text
+_max31865_write8           000090b5   defined in Debug\spi.o section .text
 _max_tasks                 0000001e   defined in Debug\scheduler.o section .bsct, initialized
 _menu                      000080a6   defined in Debug\stc1000p_lib.o section .const
-_menu_fsm                  00009614   defined in Debug\stc1000p_lib.o section .text
+_menu_fsm                  00009687   defined in Debug\stc1000p_lib.o section .text
                                       used in Debug\c100_pid_main.o
-_menu_is_idle              0000cf:2   defined in Debug\stc1000p_lib.o section .bit, initialized
+_menu_is_idle              0000cd:3   defined in Debug\stc1000p_lib.o section .bit, initialized
                                       used in Debug\c100_pid_main.o
-_menu_item                 00000024   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_menustate                 00000023   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_millis                    000089f3   defined in Debug\delay.o section .text
-_min_to_sec                00009b76   defined in Debug\stc1000p_lib.o section .text
-_minutes                   0000cf:5   defined in Debug\stc1000p_lib.o section .bit, initialized
+_menu_item                 00000020   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_menustate                 0000001f   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_millis                    00008a53   defined in Debug\delay.o section .text
+_min_to_sec                00009be9   defined in Debug\stc1000p_lib.o section .text
+_minutes                   0000cd:6   defined in Debug\stc1000p_lib.o section .bit, initialized
                                       used in Debug\c100_pid_main.o
 _mpx_nr                    00000008   defined in Debug\c100_pid_main.o section .bsct, initialized
-_multiplexer               00008326   defined in Debug\c100_pid_main.o section .text
-_pid_control               00009bcb   defined in Debug\stc1000p_lib.o section .text
+_multiplexer               00008316   defined in Debug\c100_pid_main.o section .text
+_pid_auto_tuning           00008cb7   defined in Debug\pid.o section .text
                                       used in Debug\c100_pid_main.o
-_pid_ctrl                  00008bb4   defined in Debug\pid.o section .text
+_pid_control               00009c8d   defined in Debug\stc1000p_lib.o section .text
+                                      used in Debug\c100_pid_main.o
+_pid_ctrl                  00008c2a   defined in Debug\pid.o section .text
                                       used in Debug\stc1000p_lib.o
-_pid_out                   0000002b   defined in Debug\stc1000p_lib.o section .bsct, initialized
+_pid_max                   00000035   defined in Debug\pid.o section .ubsct
+_pid_min                   00000033   defined in Debug\pid.o section .ubsct
+_pid_out                   00000027   defined in Debug\stc1000p_lib.o section .bsct, initialized
                                       used in Debug\c100_pid_main.o
-_pid_to_time               00008663   defined in Debug\c100_pid_main.o section .text
+_pid_to_time               00008653   defined in Debug\c100_pid_main.o section .text
 _portd                     000000b2   defined in Debug\stc1000p_lib.o section .ubsct
 _porte                     000000b1   defined in Debug\stc1000p_lib.o section .ubsct
 _pp                        0000003b   defined in Debug\pid.o section .ubsct
-_prfl_task                 00008933   defined in Debug\c100_pid_main.o section .text
-_prx_to_led                0000918f   defined in Debug\stc1000p_lib.o section .text
-_pwr_on                    0000cf:3   defined in Debug\stc1000p_lib.o section .bit, initialized
+_prfl_task                 00008993   defined in Debug\c100_pid_main.o section .text
+_prx_to_led                00009202   defined in Debug\stc1000p_lib.o section .text
+_pwr_on                    0000cd:4   defined in Debug\stc1000p_lib.o section .bit, initialized
                                       used in Debug\c100_pid_main.o
 _pwr_on_tmr                00000009   defined in Debug\c100_pid_main.o section .bsct, initialized
-_range                     00009439   defined in Debug\stc1000p_lib.o section .text
-_read_buttons              000095a8   defined in Debug\stc1000p_lib.o section .text
+_range                     000094ac   defined in Debug\stc1000p_lib.o section .text
+_read_buttons              0000961b   defined in Debug\stc1000p_lib.o section .text
                                       used in Debug\c100_pid_main.o
-_relay_alarm1              0000cf:0   defined in Debug\c100_pid_main.o section .bit, initialized
-_ret_state                 000000bc   defined in Debug\stc1000p_lib.o section .ubsct
-_scheduler_init            00008c45   defined in Debug\scheduler.o section .text
+_relay_alarm1              0000cd:1   defined in Debug\c100_pid_main.o section .bit, initialized
+_ret_state                 000000ba   defined in Debug\stc1000p_lib.o section .ubsct
+_scheduler_init            00008cb8   defined in Debug\scheduler.o section .text
                                       used in Debug\c100_pid_main.o
-_scheduler_isr             00008c4e   defined in Debug\scheduler.o section .text
+_scheduler_isr             00008cc1   defined in Debug\scheduler.o section .text
                                       used in Debug\c100_pid_main.o
-_sensor2_selected          00000028   defined in Debug\stc1000p_lib.o section .bsct, initialized
-_set_hc164                 00008196   defined in Debug\c100_pid_main.o section .text
+_sensor2_selected          00000024   defined in Debug\stc1000p_lib.o section .bsct, initialized
+                                      used in Debug\c100_pid_main.o
+_set_hc164                 00008186   defined in Debug\c100_pid_main.o section .text
                                       used in Debug\stc1000p_lib.o
-_set_one_led               000081da   defined in Debug\c100_pid_main.o section .text
-_set_task_time_period      00008e51   defined in Debug\scheduler.o section .text
-_setpoint                  000000b7   defined in Debug\stc1000p_lib.o section .ubsct
+_set_one_led               000081ca   defined in Debug\c100_pid_main.o section .text
+_set_task_time_period      00008ec4   defined in Debug\scheduler.o section .text
+_setpoint                  000000b3   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_setup_gpio_ports          000085b6   defined in Debug\c100_pid_main.o section .text
-_setup_timer2              000085a1   defined in Debug\c100_pid_main.o section .text
+_setup_gpio_ports          000085a6   defined in Debug\c100_pid_main.o section .text
+_setup_timer2              00008591   defined in Debug\c100_pid_main.o section .text
 _spi_error                 000000b0   defined in Debug\spi.o section .ubsct
-_spi_init                  00008eb5   defined in Debug\spi.o section .text
+_spi_init                  00008f28   defined in Debug\spi.o section .text
                                       used in Debug\c100_pid_main.o
-_spi_read                  00008eff   defined in Debug\spi.o section .text
-_spi_write                 00008eca   defined in Debug\spi.o section .text
+_spi_read                  00008f72   defined in Debug\spi.o section .text
+_spi_write                 00008f3d   defined in Debug\spi.o section .text
 _std                       0000000b   defined in Debug\c100_pid_main.o section .bsct, initialized
-_std_task                  000087eb   defined in Debug\c100_pid_main.o section .text
-_strcmp                    00009c27   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strcmp0.o section .text
+_std_task                  000087f4   defined in Debug\c100_pid_main.o section .text
+_strcmp                    00009cf4   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strcmp0.o section .text
                                       used in Debug\scheduler.o
-_strncpy                   00009c3a   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strncp.o section .text
+_strncpy                   00009d07   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libis0.sm8)strncp.o section .text
                                       used in Debug\scheduler.o
 _t2_millis                 00000013   defined in Debug\delay.o section .bsct, initialized
                                       used in Debug\c100_pid_main.o
 _task_list                 00000047   defined in Debug\scheduler.o section .ubsct
 _td                        0000001b   defined in Debug\pid.o section .bsct, initialized
                                       used in Debug\stc1000p_lib.o
-_temp_err                  0000cf:1   defined in Debug\c100_pid_main.o section .bit, initialized
+_temp_err                  0000cd:2   defined in Debug\c100_pid_main.o section .bit, initialized
 _temp_pt_fil               00000004   defined in Debug\c100_pid_main.o section .bsct, initialized
 _temp_tc_fil               00000000   defined in Debug\c100_pid_main.o section .bsct, initialized
-_temp_tc_pt                00000033   defined in Debug\c100_pid_main.o section .ubsct
+_temp_tc_pt                0000002f   defined in Debug\c100_pid_main.o section .ubsct
                                       used in Debug\stc1000p_lib.o
-_temperature_control       00009bc8   defined in Debug\stc1000p_lib.o section .text
+_temperature_control       00009c34   defined in Debug\stc1000p_lib.o section .text
+                                      used in Debug\c100_pid_main.o
 _ti                        00000019   defined in Debug\pid.o section .bsct, initialized
                                       used in Debug\stc1000p_lib.o
-_tmr2_val                  00008a7f   defined in Debug\delay.o section .text
-_top_01                    000000c1   defined in Debug\stc1000p_lib.o section .ubsct
+_tmr2_val                  00008adf   defined in Debug\delay.o section .text
+_top_01                    000000bf   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_top_1                     000000c2   defined in Debug\stc1000p_lib.o section .ubsct
+_top_1                     000000c0   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_top_10                    000000c3   defined in Debug\stc1000p_lib.o section .ubsct
+_top_10                    000000c1   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
-_top_100                   000000c4   defined in Debug\stc1000p_lib.o section .ubsct
+_top_100                   000000c2   defined in Debug\stc1000p_lib.o section .ubsct
                                       used in Debug\c100_pid_main.o
 _ts                        0000001d   defined in Debug\pid.o section .bsct, initialized
                                       used in Debug\c100_pid_main.o
                                               Debug\stc1000p_lib.o
-_update_profile            00009305   defined in Debug\stc1000p_lib.o section .text
+_update_profile            00009378   defined in Debug\stc1000p_lib.o section .text
                                       used in Debug\c100_pid_main.o
-_val_to_bcd                000091c5   defined in Debug\stc1000p_lib.o section .text
-_value_to_led              0000920a   defined in Debug\stc1000p_lib.o section .text
+_val_to_bcd                00009238   defined in Debug\stc1000p_lib.o section .text
+_value_to_led              0000927d   defined in Debug\stc1000p_lib.o section .text
                                       used in Debug\c100_pid_main.o
 _yk_1                      00000039   defined in Debug\pid.o section .ubsct
 _yk_2                      00000037   defined in Debug\pid.o section .ubsct
-c_cmulx                    00009c60   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o section .text
+c_cmulx                    00009d2d   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o section .text
                                       used in Debug\pid.o
-c_divsl                    0000a019   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
+c_divsl                    0000a0e6   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
                                       *** not used ***
-c_divul                    0000a030   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
+c_divul                    0000a0fd   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o
-c_fadd                     00009c88   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
+c_fadd                     00009d55   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
                                       used in Debug\spi.o
-c_fgmul                    00009d51   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fgmul.o section .text
+c_fgmul                    00009e1e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fgmul.o section .text
                                       used in Debug\spi.o
-c_fmul                     00009d59   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fmul.o section .text
+c_fmul                     00009e26   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fmul.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fgmul.o
-c_fsub                     00009c74   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
+c_fsub                     00009d41   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
                                       used in Debug\spi.o
-c_ftoi                     00009e2e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ftol.o section .text
+c_ftoi                     00009efb   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ftol.o section .text
                                       used in Debug\spi.o
-c_ftol                     00009e34   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ftol.o section .text
-c_itolx                    00009e90   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o section .text
+c_ftol                     00009f01   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ftol.o section .text
+c_itolx                    00009f5d   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)itolx.o section .text
                                       used in Debug\c100_pid_main.o Debug\pid.o
                                               Debug\stc1000p_lib.o
-c_ladc                     00009e9e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladc.o section .text
+c_ladc                     00009f6b   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladc.o section .text
                                       used in Debug\c100_pid_main.o
-c_ladd                     00009eaf   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o section .text
+c_ladd                     00009f7c   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ladd.o section .text
                                       used in Debug\c100_pid_main.o Debug\spi.o
-c_lcmp                     00009ec7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o section .text
+c_lcmp                     00009f94   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lcmp.o section .text
                                       used in Debug\delay.o
-c_lgadc                    00009ee7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadc.o section .text
+c_lgadc                    00009fb4   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadc.o section .text
                                       used in Debug\c100_pid_main.o Debug\delay.o
-c_lgadd                    00009ef7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o section .text
+c_lgadd                    00009fc4   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgadd.o section .text
                                       used in Debug\pid.o Debug\stc1000p_lib.o
-c_lglsh                    00009f0e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lglsh.o section .text
+c_lglsh                    00009fdb   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lglsh.o section .text
                                       used in Debug\spi.o
-c_lgneg                    0000a104   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o section .text
+c_lgneg                    0000a1d1   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgneg.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
-c_lgor                     00009f1c   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o section .text
+c_lgor                     00009fe9   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgor.o section .text
                                       used in Debug\spi.o
-c_lgrsh                    00009f33   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o section .text
+c_lgrsh                    0000a000   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lgrsh.o section .text
                                       used in Debug\stc1000p_lib.o
-c_lmul                     00009f41   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
+c_lmul                     0000a00e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
                                       used in Debug\pid.o
-c_lmulc                    00009f49   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
+c_lmulc                    0000a016   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o section .text
                                       *** not used ***
-c_lneg                     0000a117   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o section .text
+c_lneg                     0000a1e4   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lneg.o section .text
                                       used in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
-c_lreg                     000000c5   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lreg.o section .ubsct
+c_lreg                     000000c3   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lreg.o section .ubsct
                                       used in Debug\c100_pid_main.o Debug\delay.o
                                               Debug\pid.o Debug\spi.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)cmulx.o
@@ -983,33 +990,33 @@ c_lreg                     000000c5   defined in (C:\Program Files (x86)\COSMIC\
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)uitof.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o
-c_lrsh                     00009fcc   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lrsh.o section .text
+c_lrsh                     0000a099   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lrsh.o section .text
                                       used in Debug\c100_pid_main.o
-c_lsub                     00009fdb   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o section .text
+c_lsub                     0000a0a8   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lsub.o section .text
                                       used in Debug\c100_pid_main.o Debug\delay.o
-c_ltor                     00009ff3   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o section .text
+c_ltor                     0000a0c0   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ltor.o section .text
                                       used in Debug\c100_pid_main.o Debug\delay.o
                                               Debug\spi.o
-c_ludv                     0000a005   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o section .text
+c_ludv                     0000a0d2   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ludiv.o section .text
                                       used in Debug\pid.o
-c_lursh                    0000a12c   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o section .text
+c_lursh                    0000a1f9   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lursh.o section .text
                                       used in Debug\spi.o
-c_okadd                    00009c92   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
-c_okmul                    00009d67   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fmul.o section .text
+c_okadd                    00009d5f   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
+c_okmul                    00009e34   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fmul.o section .text
                                       *** not used ***
-c_oksub                    00009c7e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
+c_oksub                    00009d4b   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o section .text
                                       *** not used ***
-c_rtol                     0000a13b   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o section .text
+c_rtol                     0000a208   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)rtol.o section .text
                                       used in Debug\c100_pid_main.o Debug\delay.o
                                               Debug\pid.o Debug\spi.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fgmul.o
-c_uitof                    0000a14d   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)uitof.o section .text
+c_uitof                    0000a21a   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)uitof.o section .text
                                       used in Debug\spi.o
-c_uitolx                   0000a171   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o section .text
+c_uitolx                   0000a23e   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)utolx.o section .text
                                       used in Debug\delay.o Debug\pid.o
-c_umul                     0000a178   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o section .text
+c_umul                     0000a245   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o section .text
                                       used in Debug\pid.o
-c_x                        000000c9   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)xreg.o section .ubsct
+c_x                        000000c7   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)xreg.o section .ubsct
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
                                               Debug\c100_pid_main.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)fadd.o
@@ -1017,8 +1024,8 @@ c_x                        000000c9   defined in (C:\Program Files (x86)\COSMIC\
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)lmul.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)ldiv.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o
-c_y                        000000cc   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)yreg.o section .ubsct
+c_y                        000000ca   defined in (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)yreg.o section .ubsct
                                       used in C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\crtsi0.sm8
                                               Debug\c100_pid_main.o
                                               (C:\Program Files (x86)\COSMIC\FSE_Compilers\CXSTM8\Lib\libm0.sm8)umul.o
-f_NonHandledInterrupt      0000a1b4   defined in Debug\stm8_interrupt_vector.o section .text
+f_NonHandledInterrupt      0000a281   defined in Debug\stm8_interrupt_vector.o section .text

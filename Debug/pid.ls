@@ -10,210 +10,211 @@
   20  0004 0000          	dc.w	0
   21  0006               _ts:
   22  0006 00            	dc.b	0
- 102                     ; 46 void init_pid(uint16_t kc, uint16_t ti, uint16_t td, uint8_t ts, uint16_t yk)
- 102                     ; 47 /*------------------------------------------------------------------
- 102                     ; 48   Purpose  : This function initialises the Takahashi Type C PID
- 102                     ; 49              controller.
- 102                     ; 50   Variables: kc: Kc parameter value in %/°C    ; controls P-action
- 102                     ; 51              ti: Ti parameter value in seconds ; controls I-action
- 102                     ; 52              td: Td parameter value in seconds ; controls D-action
- 102                     ; 53              ts: Ts parameter sample-time of pid-controller in seconds
- 102                     ; 54              yk: actual temperature value
- 102                     ; 55 
- 102                     ; 56                    Kc.Ts
- 102                     ; 57              ki =  -----   (for I-term)
- 102                     ; 58                     Ti
- 102                     ; 59 
- 102                     ; 60                        Td
- 102                     ; 61              kd = Kc . --  (for D-term)
- 102                     ; 62                        Ts
- 102                     ; 63 
- 102                     ; 64   Returns  : No values are returned
- 102                     ; 65   ------------------------------------------------------------------*/
- 102                     ; 66 {
- 104                     	switch	.text
- 105  0000               _init_pid:
- 107  0000 89            	pushw	x
- 108  0001 5204          	subw	sp,#4
- 109       00000004      OFST:	set	4
- 112                     ; 67    if (ti == 0) ki = 0;
- 114  0003 1e09          	ldw	x,(OFST+5,sp)
- 115  0005 260c          	jrne	L74
- 118  0007 ae0000        	ldw	x,#0
- 119  000a bf0e          	ldw	_ki+2,x
- 120  000c ae0000        	ldw	x,#0
- 121  000f bf0c          	ldw	_ki,x
- 123  0011 2020          	jra	L15
- 124  0013               L74:
- 125                     ; 68    else         ki = (((uint32_t)kc * ts) / ti);
- 127  0013 1e09          	ldw	x,(OFST+5,sp)
- 128  0015 cd0000        	call	c_uitolx
- 130  0018 96            	ldw	x,sp
- 131  0019 1c0001        	addw	x,#OFST-3
- 132  001c cd0000        	call	c_rtol
- 135  001f 1e05          	ldw	x,(OFST+1,sp)
- 136  0021 7b0d          	ld	a,(OFST+9,sp)
- 137  0023 cd0000        	call	c_cmulx
- 139  0026 96            	ldw	x,sp
- 140  0027 1c0001        	addw	x,#OFST-3
- 141  002a cd0000        	call	c_ludv
- 143  002d ae000c        	ldw	x,#_ki
- 144  0030 cd0000        	call	c_rtol
- 146  0033               L15:
- 147                     ; 69    if (ts == 0) kd = 0;
- 149  0033 0d0d          	tnz	(OFST+9,sp)
- 150  0035 260c          	jrne	L35
- 153  0037 ae0000        	ldw	x,#0
- 154  003a bf0a          	ldw	_kd+2,x
- 155  003c ae0000        	ldw	x,#0
- 156  003f bf08          	ldw	_kd,x
- 158  0041 2025          	jra	L55
- 159  0043               L35:
- 160                     ; 70    else         kd = (((uint32_t)kc * td) / ts);
- 162  0043 7b0d          	ld	a,(OFST+9,sp)
- 163  0045 b703          	ld	c_lreg+3,a
- 164  0047 3f02          	clr	c_lreg+2
- 165  0049 3f01          	clr	c_lreg+1
- 166  004b 3f00          	clr	c_lreg
- 167  004d 96            	ldw	x,sp
- 168  004e 1c0001        	addw	x,#OFST-3
- 169  0051 cd0000        	call	c_rtol
- 172  0054 1e05          	ldw	x,(OFST+1,sp)
- 173  0056 160b          	ldw	y,(OFST+7,sp)
- 174  0058 cd0000        	call	c_umul
- 176  005b 96            	ldw	x,sp
- 177  005c 1c0001        	addw	x,#OFST-3
- 178  005f cd0000        	call	c_ludv
- 180  0062 ae0008        	ldw	x,#_kd
- 181  0065 cd0000        	call	c_rtol
- 183  0068               L55:
- 184                     ; 72    yk_2 = yk_1 = yk; // init. previous samples to current temperature
- 186  0068 1e0e          	ldw	x,(OFST+10,sp)
- 187  006a bf02          	ldw	_yk_1,x
- 188  006c be02          	ldw	x,_yk_1
- 189  006e bf00          	ldw	_yk_2,x
- 190                     ; 73 } // init_pid()
- 193  0070 5b06          	addw	sp,#6
- 194  0072 81            	ret
- 253                     ; 75 void pid_ctrl(int16_t yk, int16_t *uk, uint16_t tset)
- 253                     ; 76 /*------------------------------------------------------------------
- 253                     ; 77   Purpose  : This function implements the Takahashi Type C PID
- 253                     ; 78              controller: the P and D term are no longer dependent
- 253                     ; 79              on the setpoint, only on PV.
- 253                     ; 80              This function should be called once every TS seconds.
- 253                     ; 81   Variables:
- 253                     ; 82         yk : The input variable y[k] (= measured temperature in E-1 °C)
- 253                     ; 83        *uk : The pid-output variable u[k] [-1000..+1000] in E-1 %
- 253                     ; 84       tset : The setpoint value w[k] for the temperature in E-1 °C
- 253                     ; 85   Returns  : No values are returned
- 253                     ; 86   ------------------------------------------------------------------*/
- 253                     ; 87 {
- 254                     	switch	.text
- 255  0073               _pid_ctrl:
- 257  0073 89            	pushw	x
- 258  0074 5204          	subw	sp,#4
- 259       00000004      OFST:	set	4
- 262                     ; 97     pp   = (uint32_t)kc * (yk_1 - yk);               // Kc.(y[k-1]-y[k])
- 264  0076 be02          	ldw	x,_yk_1
- 265  0078 72f005        	subw	x,(OFST+1,sp)
- 266  007b cd0000        	call	c_itolx
- 268  007e 96            	ldw	x,sp
- 269  007f 1c0001        	addw	x,#OFST-3
- 270  0082 cd0000        	call	c_rtol
- 273  0085 be00          	ldw	x,_kc
- 274  0087 cd0000        	call	c_uitolx
- 276  008a 96            	ldw	x,sp
- 277  008b 1c0001        	addw	x,#OFST-3
- 278  008e cd0000        	call	c_lmul
- 280  0091 ae0004        	ldw	x,#_pp
- 281  0094 cd0000        	call	c_rtol
- 283                     ; 98     pp  += (uint32_t)ki * (tset - yk);               // (Kc.Ts/Ti).e[k]
- 285  0097 1e0b          	ldw	x,(OFST+7,sp)
- 286  0099 72f005        	subw	x,(OFST+1,sp)
- 287  009c cd0000        	call	c_uitolx
- 289  009f ae000c        	ldw	x,#_ki
- 290  00a2 cd0000        	call	c_lmul
- 292  00a5 ae0004        	ldw	x,#_pp
- 293  00a8 cd0000        	call	c_lgadd
- 295                     ; 99     pp  += (uint32_t)kd * ((yk_1 << 1) - yk - yk_2); // (Kc.Td/Ts).(2.y[k-1]-y[k]-y[k-2])
- 297  00ab be02          	ldw	x,_yk_1
- 298  00ad 58            	sllw	x
- 299  00ae 72f005        	subw	x,(OFST+1,sp)
- 300  00b1 72b00000      	subw	x,_yk_2
- 301  00b5 cd0000        	call	c_itolx
- 303  00b8 ae0008        	ldw	x,#_kd
- 304  00bb cd0000        	call	c_lmul
- 306  00be ae0004        	ldw	x,#_pp
- 307  00c1 cd0000        	call	c_lgadd
- 309                     ; 100     *uk += (int16_t)pp;
- 311  00c4 1e09          	ldw	x,(OFST+5,sp)
- 312  00c6 9093          	ldw	y,x
- 313  00c8 fe            	ldw	x,(x)
- 314  00c9 72bb0006      	addw	x,_pp+2
- 315  00cd 90ff          	ldw	(y),x
- 316                     ; 102     if (*uk > GMA_HLIM)      *uk = GMA_HLIM;
- 318  00cf 9c            	rvf
- 319  00d0 1e09          	ldw	x,(OFST+5,sp)
- 320  00d2 9093          	ldw	y,x
- 321  00d4 90fe          	ldw	y,(y)
- 322  00d6 90a303e9      	cpw	y,#1001
- 323  00da 2f09          	jrslt	L501
- 326  00dc 1e09          	ldw	x,(OFST+5,sp)
- 327  00de 90ae03e8      	ldw	y,#1000
- 328  00e2 ff            	ldw	(x),y
- 330  00e3 2014          	jra	L701
- 331  00e5               L501:
- 332                     ; 103     else if (*uk < GMA_LLIM) *uk = GMA_LLIM;
- 334  00e5 9c            	rvf
- 335  00e6 1e09          	ldw	x,(OFST+5,sp)
- 336  00e8 9093          	ldw	y,x
- 337  00ea 90fe          	ldw	y,(y)
- 338  00ec 90a3fc18      	cpw	y,#64536
- 339  00f0 2e07          	jrsge	L701
- 342  00f2 1e09          	ldw	x,(OFST+5,sp)
- 343  00f4 90aefc18      	ldw	y,#64536
- 344  00f8 ff            	ldw	(x),y
- 345  00f9               L701:
- 346                     ; 105     yk_2  = yk_1; // y[k-2] = y[k-1]
- 348  00f9 be02          	ldw	x,_yk_1
- 349  00fb bf00          	ldw	_yk_2,x
- 350                     ; 106     yk_1  = yk;   // y[k-1] = y[k]
- 352  00fd 1e05          	ldw	x,(OFST+1,sp)
- 353  00ff bf02          	ldw	_yk_1,x
- 354                     ; 107 } // pid_ctrl()
- 357  0101 5b06          	addw	sp,#6
- 358  0103 81            	ret
- 454                     	switch	.ubsct
- 455  0000               _yk_2:
- 456  0000 0000          	ds.b	2
- 457                     	xdef	_yk_2
- 458  0002               _yk_1:
- 459  0002 0000          	ds.b	2
- 460                     	xdef	_yk_1
- 461  0004               _pp:
- 462  0004 00000000      	ds.b	4
- 463                     	xdef	_pp
- 464  0008               _kd:
- 465  0008 00000000      	ds.b	4
- 466                     	xdef	_kd
- 467  000c               _ki:
- 468  000c 00000000      	ds.b	4
- 469                     	xdef	_ki
- 470                     	xdef	_ts
- 471                     	xdef	_td
- 472                     	xdef	_ti
- 473                     	xdef	_kc
- 474                     	xdef	_pid_ctrl
- 475                     	xdef	_init_pid
- 476                     	xref.b	c_lreg
- 477                     	xref.b	c_x
- 478                     	xref.b	c_y
- 498                     	xref	c_lgadd
- 499                     	xref	c_lmul
- 500                     	xref	c_itolx
- 501                     	xref	c_umul
- 502                     	xref	c_ludv
- 503                     	xref	c_rtol
- 504                     	xref	c_uitolx
- 505                     	xref	c_cmulx
- 506                     	end
+ 104                     ; 67 void init_pid(uint16_t kc, uint16_t ti, uint16_t td, uint8_t ts, int16_t yk)
+ 104                     ; 68 {
+ 106                     	switch	.text
+ 107  0000               _init_pid:
+ 109  0000 89            	pushw	x
+ 110  0001 5204          	subw	sp,#4
+ 111       00000004      OFST:	set	4
+ 114                     ; 69    if (ti == 0) ki = 0;
+ 116  0003 1e09          	ldw	x,(OFST+5,sp)
+ 117  0005 260c          	jrne	L74
+ 120  0007 ae0000        	ldw	x,#0
+ 121  000a bf12          	ldw	_ki+2,x
+ 122  000c ae0000        	ldw	x,#0
+ 123  000f bf10          	ldw	_ki,x
+ 125  0011 2020          	jra	L15
+ 126  0013               L74:
+ 127                     ; 70    else         ki = (((uint32_t)kc * ts) / ti);
+ 129  0013 1e09          	ldw	x,(OFST+5,sp)
+ 130  0015 cd0000        	call	c_uitolx
+ 132  0018 96            	ldw	x,sp
+ 133  0019 1c0001        	addw	x,#OFST-3
+ 134  001c cd0000        	call	c_rtol
+ 137  001f 1e05          	ldw	x,(OFST+1,sp)
+ 138  0021 7b0d          	ld	a,(OFST+9,sp)
+ 139  0023 cd0000        	call	c_cmulx
+ 141  0026 96            	ldw	x,sp
+ 142  0027 1c0001        	addw	x,#OFST-3
+ 143  002a cd0000        	call	c_ludv
+ 145  002d ae0010        	ldw	x,#_ki
+ 146  0030 cd0000        	call	c_rtol
+ 148  0033               L15:
+ 149                     ; 71    if (ts == 0) kd = 0;
+ 151  0033 0d0d          	tnz	(OFST+9,sp)
+ 152  0035 260c          	jrne	L35
+ 155  0037 ae0000        	ldw	x,#0
+ 156  003a bf0e          	ldw	_kd+2,x
+ 157  003c ae0000        	ldw	x,#0
+ 158  003f bf0c          	ldw	_kd,x
+ 160  0041 2025          	jra	L55
+ 161  0043               L35:
+ 162                     ; 72    else         kd = (((uint32_t)kc * td) / ts);
+ 164  0043 7b0d          	ld	a,(OFST+9,sp)
+ 165  0045 b703          	ld	c_lreg+3,a
+ 166  0047 3f02          	clr	c_lreg+2
+ 167  0049 3f01          	clr	c_lreg+1
+ 168  004b 3f00          	clr	c_lreg
+ 169  004d 96            	ldw	x,sp
+ 170  004e 1c0001        	addw	x,#OFST-3
+ 171  0051 cd0000        	call	c_rtol
+ 174  0054 1e05          	ldw	x,(OFST+1,sp)
+ 175  0056 160b          	ldw	y,(OFST+7,sp)
+ 176  0058 cd0000        	call	c_umul
+ 178  005b 96            	ldw	x,sp
+ 179  005c 1c0001        	addw	x,#OFST-3
+ 180  005f cd0000        	call	c_ludv
+ 182  0062 ae000c        	ldw	x,#_kd
+ 183  0065 cd0000        	call	c_rtol
+ 185  0068               L55:
+ 186                     ; 74    if (kc > 0)
+ 188  0068 1e05          	ldw	x,(OFST+1,sp)
+ 189  006a 270a          	jreq	L75
+ 190                     ; 76        pid_max = GMA_HLIM;
+ 192  006c ae03e8        	ldw	x,#1000
+ 193  006f bf02          	ldw	_pid_max,x
+ 194                     ; 77        pid_min = 0;
+ 196  0071 5f            	clrw	x
+ 197  0072 bf00          	ldw	_pid_min,x
+ 199  0074 2008          	jra	L16
+ 200  0076               L75:
+ 201                     ; 81        pid_max = 0;
+ 203  0076 5f            	clrw	x
+ 204  0077 bf02          	ldw	_pid_max,x
+ 205                     ; 82        pid_min = GMA_LLIM;
+ 207  0079 aefc18        	ldw	x,#64536
+ 208  007c bf00          	ldw	_pid_min,x
+ 209  007e               L16:
+ 210                     ; 84    yk_2 = yk_1 = yk; // init. previous samples to current temperature
+ 212  007e 1e0e          	ldw	x,(OFST+10,sp)
+ 213  0080 bf06          	ldw	_yk_1,x
+ 214  0082 be06          	ldw	x,_yk_1
+ 215  0084 bf04          	ldw	_yk_2,x
+ 216                     ; 85 } // init_pid()
+ 219  0086 5b06          	addw	sp,#6
+ 220  0088 81            	ret
+ 281                     ; 98 void pid_ctrl(int16_t yk, int16_t *uk, int16_t tset)
+ 281                     ; 99 {
+ 282                     	switch	.text
+ 283  0089               _pid_ctrl:
+ 285  0089 89            	pushw	x
+ 286  008a 5204          	subw	sp,#4
+ 287       00000004      OFST:	set	4
+ 290                     ; 109     pp   = (uint32_t)kc * (yk_1 - yk);               // Kc.(y[k-1]-y[k])
+ 292  008c be06          	ldw	x,_yk_1
+ 293  008e 72f005        	subw	x,(OFST+1,sp)
+ 294  0091 cd0000        	call	c_itolx
+ 296  0094 96            	ldw	x,sp
+ 297  0095 1c0001        	addw	x,#OFST-3
+ 298  0098 cd0000        	call	c_rtol
+ 301  009b be00          	ldw	x,_kc
+ 302  009d cd0000        	call	c_uitolx
+ 304  00a0 96            	ldw	x,sp
+ 305  00a1 1c0001        	addw	x,#OFST-3
+ 306  00a4 cd0000        	call	c_lmul
+ 308  00a7 ae0008        	ldw	x,#_pp
+ 309  00aa cd0000        	call	c_rtol
+ 311                     ; 110     pp  += (uint32_t)ki * (tset - yk);               // (Kc.Ts/Ti).e[k]
+ 313  00ad 1e0b          	ldw	x,(OFST+7,sp)
+ 314  00af 72f005        	subw	x,(OFST+1,sp)
+ 315  00b2 cd0000        	call	c_itolx
+ 317  00b5 ae0010        	ldw	x,#_ki
+ 318  00b8 cd0000        	call	c_lmul
+ 320  00bb ae0008        	ldw	x,#_pp
+ 321  00be cd0000        	call	c_lgadd
+ 323                     ; 111     pp  += (uint32_t)kd * ((yk_1 << 1) - yk - yk_2); // (Kc.Td/Ts).(2.y[k-1]-y[k]-y[k-2])
+ 325  00c1 be06          	ldw	x,_yk_1
+ 326  00c3 58            	sllw	x
+ 327  00c4 72f005        	subw	x,(OFST+1,sp)
+ 328  00c7 72b00004      	subw	x,_yk_2
+ 329  00cb cd0000        	call	c_itolx
+ 331  00ce ae000c        	ldw	x,#_kd
+ 332  00d1 cd0000        	call	c_lmul
+ 334  00d4 ae0008        	ldw	x,#_pp
+ 335  00d7 cd0000        	call	c_lgadd
+ 337                     ; 112     *uk += (int16_t)pp;
+ 339  00da 1e09          	ldw	x,(OFST+5,sp)
+ 340  00dc 9093          	ldw	y,x
+ 341  00de fe            	ldw	x,(x)
+ 342  00df 72bb000a      	addw	x,_pp+2
+ 343  00e3 90ff          	ldw	(y),x
+ 344                     ; 114     if (*uk > pid_max)      *uk = pid_max;
+ 346  00e5 9c            	rvf
+ 347  00e6 1e09          	ldw	x,(OFST+5,sp)
+ 348  00e8 9093          	ldw	y,x
+ 349  00ea 90fe          	ldw	y,(y)
+ 350  00ec 90b302        	cpw	y,_pid_max
+ 351  00ef 2d08          	jrsle	L111
+ 354  00f1 1e09          	ldw	x,(OFST+5,sp)
+ 355  00f3 90be02        	ldw	y,_pid_max
+ 356  00f6 ff            	ldw	(x),y
+ 358  00f7 2012          	jra	L311
+ 359  00f9               L111:
+ 360                     ; 115     else if (*uk < pid_min) *uk = pid_min;
+ 362  00f9 9c            	rvf
+ 363  00fa 1e09          	ldw	x,(OFST+5,sp)
+ 364  00fc 9093          	ldw	y,x
+ 365  00fe 90fe          	ldw	y,(y)
+ 366  0100 90b300        	cpw	y,_pid_min
+ 367  0103 2e06          	jrsge	L311
+ 370  0105 1e09          	ldw	x,(OFST+5,sp)
+ 371  0107 90be00        	ldw	y,_pid_min
+ 372  010a ff            	ldw	(x),y
+ 373  010b               L311:
+ 374                     ; 117     yk_2  = yk_1; // y[k-2] = y[k-1]
+ 376  010b be06          	ldw	x,_yk_1
+ 377  010d bf04          	ldw	_yk_2,x
+ 378                     ; 118     yk_1  = yk;   // y[k-1] = y[k]
+ 380  010f 1e05          	ldw	x,(OFST+1,sp)
+ 381  0111 bf06          	ldw	_yk_1,x
+ 382                     ; 119 } // pid_ctrl()
+ 385  0113 5b06          	addw	sp,#6
+ 386  0115 81            	ret
+ 409                     ; 121 void pid_auto_tuning(void)
+ 409                     ; 122 {
+ 410                     	switch	.text
+ 411  0116               _pid_auto_tuning:
+ 415                     ; 123 } // pid_auto_tuning()
+ 418  0116 81            	ret
+ 532                     	switch	.ubsct
+ 533  0000               _pid_min:
+ 534  0000 0000          	ds.b	2
+ 535                     	xdef	_pid_min
+ 536  0002               _pid_max:
+ 537  0002 0000          	ds.b	2
+ 538                     	xdef	_pid_max
+ 539  0004               _yk_2:
+ 540  0004 0000          	ds.b	2
+ 541                     	xdef	_yk_2
+ 542  0006               _yk_1:
+ 543  0006 0000          	ds.b	2
+ 544                     	xdef	_yk_1
+ 545  0008               _pp:
+ 546  0008 00000000      	ds.b	4
+ 547                     	xdef	_pp
+ 548  000c               _kd:
+ 549  000c 00000000      	ds.b	4
+ 550                     	xdef	_kd
+ 551  0010               _ki:
+ 552  0010 00000000      	ds.b	4
+ 553                     	xdef	_ki
+ 554                     	xdef	_ts
+ 555                     	xdef	_td
+ 556                     	xdef	_ti
+ 557                     	xdef	_kc
+ 558                     	xdef	_pid_auto_tuning
+ 559                     	xdef	_pid_ctrl
+ 560                     	xdef	_init_pid
+ 561                     	xref.b	c_lreg
+ 562                     	xref.b	c_x
+ 563                     	xref.b	c_y
+ 583                     	xref	c_lgadd
+ 584                     	xref	c_lmul
+ 585                     	xref	c_itolx
+ 586                     	xref	c_umul
+ 587                     	xref	c_ludv
+ 588                     	xref	c_rtol
+ 589                     	xref	c_uitolx
+ 590                     	xref	c_cmulx
+ 591                     	end
